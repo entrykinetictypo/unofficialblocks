@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>비공식 블록 생성기</title>
+  <style>
+    *{box-sizing:border-box}
+    body{width:450px;margin:0;padding:14px;font-family:Arial,"Noto Sans KR",sans-serif;background:#f6f7f9;color:#222}
+    h1{font-size:18px;margin:0 0 12px}
+    h2{font-size:14px;margin:0}
+    label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
+    input,select,button{font:inherit}
+    input[type="text"],input[type="number"],select{width:100%;min-width:0;padding:8px 9px;border:1px solid #d4d8de;border-radius:8px;background:#fff;outline:none}
+    input:focus,select:focus{border-color:#7f8cff}
+    button{border:0;border-radius:8px;padding:9px 11px;cursor:pointer;background:#eceff3}
+    button:hover{filter:brightness(.97)}
+    button:disabled{opacity:.55;cursor:default}
+    .primary{background:#4f63ff;color:#fff;font-weight:700}
+    .danger{background:#fff0f0;color:#c93636}
+    .full{width:100%}
+    .hint{font-size:11px;color:#737b85;line-height:1.45;margin-top:6px}
+    #categoriesList{display:grid;gap:10px}
+    .category-card{background:#fff;border:1px solid #e4e7eb;border-radius:12px;padding:12px}
+    .category-head{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-bottom:10px}
+    .category-title{font-size:13px;font-weight:800}
+    .category-name-wrap{margin-bottom:10px}
+    .blocks-list{display:grid;gap:7px}
+    .block-row{display:grid;grid-template-columns:1fr auto;gap:7px;align-items:center}
+    .block-edit-btn{text-align:left;background:#f3f5f8;border:1px solid #e1e5ea}
+    .block-edit-btn strong{display:block;font-size:12px}
+    .block-edit-btn span{display:block;font-size:10px;color:#777;margin-top:3px}
+    .add-block-btn{width:44px;height:36px;padding:0;font-size:23px;font-weight:700;margin-top:8px}
+    #addCategoryBtn{width:100%;margin:10px 0;background:#e9edff;color:#3347db;font-weight:800}
+    #status{min-height:18px;font-size:11px;color:#555;margin-top:8px;word-break:break-all}
+    #modalBackdrop{position:fixed;inset:0;display:none;background:rgba(0,0,0,.36);z-index:1000;padding:12px}
+    #modalBackdrop.open{display:block}
+    #editorModal{height:100%;overflow-y:auto;background:#fff;border-radius:14px;padding:14px;box-shadow:0 12px 40px rgba(0,0,0,.22)}
+    .modal-title-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+    .modal-title-row h2{margin:0;font-size:16px}
+    .icon-btn{flex:0 0 auto;width:34px;height:34px;padding:0;font-size:18px}
+    .rgb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+    .rgb-grid label{font-weight:500;margin:0}
+    .section-title{font-size:12px;font-weight:800;margin:14px 0 7px}
+    #partsEditor{display:grid;gap:9px}
+    .part-card{border:1px solid #e2e5ea;border-radius:10px;padding:9px;background:#fafbfc}
+    .part-head{display:grid;grid-template-columns:1fr 34px;gap:6px;align-items:center}
+    .part-props{margin-top:8px;display:grid;gap:7px}
+    .part-props label{font-weight:600;margin:0}
+    .boolean-preview{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .boolean-chip{text-align:center;border:1px solid #d9dde3;background:#fff;border-radius:8px;padding:8px;font-size:12px;font-weight:700}
+    .option-list{display:grid;gap:6px}
+    .option-row{display:grid;grid-template-columns:1fr 1fr 30px;gap:5px;align-items:center}
+    .small-btn{width:30px;height:30px;padding:0}
+    .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:14px;position:sticky;bottom:-14px;padding:10px 0 0;background:#fff}
+  </style>
+</head>
+<body>
+  <h1>비공식 블록 생성기</h1>
+
+  <div id="categoriesList"></div>
+
+  <button id="addCategoryBtn">+ 카테고리 추가</button>
+  <button id="registerBtn" class="primary full">비공식 블록 카테고리 전체 등록하기</button>
+  <div id="status"></div>
+
+  <div id="modalBackdrop">
+    <div id="editorModal">
+      <div class="modal-title-row">
+        <h2 id="modalTitle">블록 만들기</h2>
+        <button id="closeModalBtn" class="icon-btn">×</button>
+      </div>
+
+      <div class="section-title">블록 색 정하기 (RGB)</div>
+      <div class="rgb-grid">
+        <label>R<input id="colorR" type="number" min="0" max="255" /></label>
+        <label>G<input id="colorG" type="number" min="0" max="255" /></label>
+        <label>B<input id="colorB" type="number" min="0" max="255" /></label>
+      </div>
+
+      <div class="section-title">테두리 색 정하기 (RGB)</div>
+      <div class="rgb-grid">
+        <label>R<input id="borderR" type="number" min="0" max="255" /></label>
+        <label>G<input id="borderG" type="number" min="0" max="255" /></label>
+        <label>B<input id="borderB" type="number" min="0" max="255" /></label>
+      </div>
+
+      <div class="section-title">블록 구성</div>
+      <div class="hint">드롭다운 하나가 블록 안의 요소 하나입니다. +를 누르면 요소가 추가됩니다.</div>
+      <div id="partsEditor"></div>
+      <button id="addPartBtn" class="full" style="margin-top:8px;">+ 요소 추가</button>
+
+      <div class="modal-actions">
+        <button id="cancelEditBtn">취소</button>
+        <button id="saveEditBtn" class="primary">완료</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "비공식 블록 생성기",
+  "version": "0.1.2",
+  "description": "엔트리에서 여러 비공식 블록 카테고리와 블록 모양을 직접 만들어 등록합니다.",
+  "permissions": ["storage", "tabs"],
+  "action": {"default_popup": "popup.html"},
+  "content_scripts": [
+    {
+      "matches": ["https://playentry.org/ws/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://playentry.org/ws/*"],
+      "js": ["patch.js"],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    }
+  ]
+}
