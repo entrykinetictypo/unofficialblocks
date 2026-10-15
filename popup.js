@@ -43,6 +43,7 @@
   const borderG = document.getElementById("borderG");
   const borderB = document.getElementById("borderB");
   const borderA = document.getElementById("borderA");
+  const blockShape = document.getElementById("blockShape");
 
   let design = createDefaultDesign();
   let editingCategoryIndex = -1;
@@ -85,12 +86,13 @@
     return { type: "label", text: "새 블록" };
   }
 
-  function createDefaultBlock(index) {
-    return {
-      id: uid("block"),
-      color: { r: 79, g: 99, b: 255 ,a: 255},
-      border: { r: 52, g: 70, b: 210,a: 255},
-      parts: [
+function createDefaultBlock(index) {
+  return {
+    id: uid("block"),
+    skeleton: "basic",
+    color: { r: 79, g: 99, b: 255, a: 255 },
+    border: { r: 52, g: 70, b: 210, a: 255 },
+    parts: [
         { type: "label", text: `블록 ${index + 1}` },
         { type: "indicator", size: 11, categoryName: "흐름" }
       ]
@@ -136,6 +138,7 @@
   function normalizeBlock(block, index) {
     if (!block || typeof block !== "object") block = createDefaultBlock(index);
     if (!block.id) block.id = uid("block");
+    if (!block.skeleton) block.skeleton = "basic";
     if (!Array.isArray(block.parts) || !block.parts.length) {
       block.parts = [createDefaultPart("label")];
     }
@@ -325,6 +328,7 @@
     borderG.value = editingBlock.border?.g ?? 70;
     borderB.value = editingBlock.border?.b ?? 210;
     borderA.value = editingBlock.border?.a ?? 255;
+    blockShape.value = editingBlock.skeleton || "basic";
 
     if (!Array.isArray(editingBlock.parts) || !editingBlock.parts.length) {
       editingBlock.parts = [createDefaultPart("label")];
@@ -680,7 +684,7 @@
       b: clampRgb(borderB.value),
       a: clampRgb(borderA.value)
     };
-
+editingBlock.skeleton = blockShape.value;
     design.categories[editingCategoryIndex].blocks[editingBlockIndex] = editingBlock;
     saveDesign();
     renderCategories();
