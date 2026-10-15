@@ -252,29 +252,55 @@
       mapIndex++;
       paramNumber++;
     }
+const template =
+  templatePieces.join(" ").replace(/\s+/g, " ").trim() ||
+  `블록 ${index + 1}`;
 
-    const template = templatePieces.join(" ").replace(/\s+/g, " ").trim() || `블록 ${index + 1}`;
+const skeleton = block.skeleton || "basic";
 
-    return {
-      id: blockId,
-      definition: {
-        color: blockColor,
-        outerLine: borderColor,
-        fontColor: "#ffffffff",
-        skeleton: "basic",
-        statement: [],
-        params,
-        events: {},
-        def: {
-          params: defs,
-          type: blockId
-        },
-        paramsKeyMap: map,
-        class: "ubg_generated",
-        func: async () => {},
-        template
-      }
-    };
+const definition = {
+  color: blockColor,
+  outerLine: borderColor,
+  fontColor: "#ffffffff",
+  skeleton,
+  statement: [],
+  params,
+  events: {},
+  def: {
+    params: defs,
+    type: blockId
+  },
+  paramsKeyMap: map,
+  class: "ubg_generated",
+  func: async () => {},
+  template
+};
+
+
+// 동족 섭취 블록
+if (skeleton === "basic_loop") {
+  definition.statements = [null];
+  definition.statementsKeyMap = {
+    STACK: 0
+  };
+}
+
+
+// 이구룡 블록
+if (skeleton === "basic_double_loop") {
+  definition.statements = [null, null];
+  definition.statementsKeyMap = {
+    STACK_IF: 0,
+    STACK_ELSE: 1
+  };
+}
+
+
+return {
+  id: blockId,
+  definition
+};
+   
   }
 
   function removeCategoryAndBlocks(categoryId) {
