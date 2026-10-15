@@ -73,6 +73,7 @@
     if (type === "indicator") {
       return { type, size: 11, categoryName: "흐름" };
     }
+    if (type === "linebreak") return { type };
     if (type === "dropdown") {
       return {
         type,
@@ -349,13 +350,14 @@ function createDefaultBlock(index) {
   function typeSelect(part, index) {
     const select = document.createElement("select");
     const types = [
-      ["일반 이름", "label"],
-      ["값 블록", "value"],
-      ["boolean", "boolean"],
-      ["텍스트 인풋", "textInput"],
-      ["인디케이터", "indicator"],
-      ["드롭다운", "dropdown"]
-    ];
+  ["일반 이름", "label"],
+  ["값 블록", "value"],
+  ["boolean", "boolean"],
+  ["텍스트 인풋", "textInput"],
+  ["인디케이터", "indicator"],
+  ["드롭다운", "dropdown"],
+  ["줄바꿈", "linebreak"]
+];
 
     for (const [label, value] of types) {
       const option = document.createElement("option");
