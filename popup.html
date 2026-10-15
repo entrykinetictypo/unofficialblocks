@@ -90,7 +90,16 @@
   <label>B<input id="borderB" type="number" min="0" max="255" /></label>
   <label>A<input id="borderA" type="number" min="0" max="255" /></label>
 </div>
-
+<div class="section-title">블록 형태</div>
+<select id="blockShape">
+  <option value="basic">기본 블록</option>
+  <option value="basic_string_field">값 블록</option>
+  <option value="basic_boolean_field">판단 블록</option>
+  <option value="basic_without_next">끝 블록</option>
+  <option value="basic_loop">동족 섭취 블록</option>
+  <option value="basic_double_loop">이구룡 블록</option>
+  <option value="basic_event">시작 블록</option>
+</select>
       <div class="section-title">블록 구성</div>
       <div class="hint">드롭다운 하나가 블록 안의 요소 하나입니다. +를 누르면 요소가 추가됩니다.</div>
       <div id="partsEditor"></div>
