@@ -32,10 +32,27 @@
   }
 
   function rgbToHex(rgb) {
-    const values = [rgb?.r, rgb?.g, rgb?.b].map(clampRgb);
-    return `#${values.map((value) => value.toString(16).padStart(2, "0")).join("")}`;
-  }
 
+  const values = [
+    rgb?.r,
+    rgb?.g,
+    rgb?.b,
+    rgb?.a ?? 255
+  ].map(
+    clampRgb
+  );
+
+  return `#${
+    values
+      .map(
+        value =>
+          value
+            .toString(16)
+            .padStart(2, "0")
+      )
+      .join("")
+  }`;
+}
   function sanitizeId(value) {
     return String(value || "")
       .replace(/[^a-zA-Z0-9_-]/g, "_")
