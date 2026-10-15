@@ -197,7 +197,15 @@
         def: undefined
       };
     }
-
+if (part.type === "linebreak") {
+  return {
+    template: `%${paramNumber}`,
+    param: {
+      type: "LineBreak"
+    },
+    def: undefined
+  };
+}
     if (part.type === "dropdown") {
       const options = Array.isArray(part.options) && part.options.length
         ? part.options.map((item) => [String(item.label ?? ""), String(item.value ?? "")])
