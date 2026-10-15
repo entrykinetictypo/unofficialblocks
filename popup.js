@@ -38,9 +38,11 @@
   const colorR = document.getElementById("colorR");
   const colorG = document.getElementById("colorG");
   const colorB = document.getElementById("colorB");
+  const colorA = document.getElementById("colorA");
   const borderR = document.getElementById("borderR");
   const borderG = document.getElementById("borderG");
   const borderB = document.getElementById("borderB");
+  const borderA = document.getElementById("borderA");
 
   let design = createDefaultDesign();
   let editingCategoryIndex = -1;
@@ -86,8 +88,8 @@
   function createDefaultBlock(index) {
     return {
       id: uid("block"),
-      color: { r: 79, g: 99, b: 255 },
-      border: { r: 52, g: 70, b: 210 },
+      color: { r: 79, g: 99, b: 255 ,a: 255},
+      border: { r: 52, g: 70, b: 210,a: 255},
       parts: [
         { type: "label", text: `블록 ${index + 1}` },
         { type: "indicator", size: 11, categoryName: "흐름" }
@@ -318,9 +320,11 @@
     colorR.value = editingBlock.color?.r ?? 79;
     colorG.value = editingBlock.color?.g ?? 99;
     colorB.value = editingBlock.color?.b ?? 255;
+    colorA.value = editingBlock.color?.a ?? 255;
     borderR.value = editingBlock.border?.r ?? 52;
     borderG.value = editingBlock.border?.g ?? 70;
     borderB.value = editingBlock.border?.b ?? 210;
+    borderA.value = editingBlock.border?.a ?? 255;
 
     if (!Array.isArray(editingBlock.parts) || !editingBlock.parts.length) {
       editingBlock.parts = [createDefaultPart("label")];
@@ -666,13 +670,15 @@
     editingBlock.color = {
       r: clampRgb(colorR.value),
       g: clampRgb(colorG.value),
-      b: clampRgb(colorB.value)
+      b: clampRgb(colorB.value),
+      a: clampRgb(colorA.value)
     };
 
     editingBlock.border = {
       r: clampRgb(borderR.value),
       g: clampRgb(borderG.value),
-      b: clampRgb(borderB.value)
+      b: clampRgb(borderB.value),
+      a: clampRgb(borderA.value)
     };
 
     design.categories[editingCategoryIndex].blocks[editingBlockIndex] = editingBlock;
