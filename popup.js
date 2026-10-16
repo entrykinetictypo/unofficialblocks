@@ -27,6 +27,7 @@
   const categoriesList = document.getElementById("categoriesList");
   const addCategoryBtn = document.getElementById("addCategoryBtn");
   const registerBtn = document.getElementById("registerBtn");
+  const copyDistBtn = document.getElementById("copyDistBtn");
   const statusBox = document.getElementById("status");
   const modalBackdrop = document.getElementById("modalBackdrop");
   const modalTitle = document.getElementById("modalTitle");
@@ -233,6 +234,18 @@ function createDefaultBlock(index) {
     ? `${shape} · ${parts}`
     : shape;
 }
+  function hasBlocks() {
+  return design.categories.some(
+    (category) =>
+      Array.isArray(category.blocks) &&
+      category.blocks.length > 0
+  );
+}
+
+function updateCopyDistButton() {
+  copyDistBtn.style.display =
+    hasBlocks() ? "block" : "none";
+}
 
   function renderCategories() {
     categoriesList.innerHTML = "";
@@ -335,6 +348,7 @@ function createDefaultBlock(index) {
       card.appendChild(addBlockBtn);
       categoriesList.appendChild(card);
     });
+    updateCopyDistButton();
   }
 
   function openEditor(categoryIndex, blockIndex) {
@@ -607,7 +621,680 @@ function createDefaultBlock(index) {
       partsEditor.appendChild(card);
     });
   }
+function makeDistributionJs() {
+  const config = clone(design);
+  const configJson = JSON.stringify(config, null, 2);
 
+  return `(() => {
+  "use strict";
+
+  const design = ${configJson};
+
+  const INDICATOR_NAME_TO_CODE = {
+    "시작": "start",
+    "흐름": "flow",
+    "움직임": "moving",
+    "생김새": "looks",
+    "붓": "brush",
+    "소리": "sound",
+    "판단": "judgement",
+    "계산": "calc",
+    "자료": "variable",
+    "함수": "func",
+    "데이터분석": "analysis",
+    "인공지능": "ai_utilize",
+    "확장": "expansion",
+    "하드웨어": "hardware"
+  };
+
+
+  function clampRgb(value) {
+    const number = Number(value);
+
+    if (!Number.isFinite(number)) {
+      return 0;
+    }
+
+    return Math.max(
+      0,
+      Math.min(255, Math.round(number))
+    );
+  }
+
+
+  function rgbToHex(rgb) {
+    const values = [
+      rgb?.r,
+      rgb?.g,
+      rgb?.b,
+      rgb?.a ?? 255
+    ].map(clampRgb);
+
+    return "#" + values
+      .map((value) =>
+        value
+          .toString(16)
+          .padStart(2, "0")
+      )
+      .join("");
+  }
+
+
+  function sanitizeId(value) {
+    return String(value || "")
+      .replace(/[^a-zA-Z0-9_-]/g, "_")
+      .replace(/_+/g, "_")
+      .slice(0, 80) || "item";
+  }
+
+
+  function resolveIndicatorCategory(part) {
+    return (
+      INDICATOR_NAME_TO_CODE[
+        String(part?.categoryName || "").trim()
+      ] ||
+      "flow"
+    );
+  }
+
+
+  function buildPart(
+    part,
+    paramNumber,
+    borderColor
+  ) {
+
+    if (
+      !part ||
+      part.type === "label"
+    ) {
+      return null;
+    }
+
+
+    if (part.type === "value") {
+      return {
+        template: "%" + paramNumber,
+
+        param: {
+          type: "Block",
+          accept: "string"
+        },
+
+        def: {
+          type: "text",
+          params: [
+            String(part.defaultValue ?? "")
+          ]
+        }
+      };
+    }
+
+
+    if (part.type === "boolean") {
+      return {
+        template: "%" + paramNumber,
+
+        param: {
+          type: "Block",
+          accept: "boolean"
+        },
+
+        def: {
+          type: "True"
+        }
+      };
+    }
+
+
+    if (part.type === "textInput") {
+      return {
+        template: "%" + paramNumber,
+
+        param: {
+          type: "TextInput",
+          value: String(part.value ?? ""),
+          clearBG: true,
+          color: "#ffffffff",
+          size: Math.max(
+            8,
+            Math.min(
+              24,
+              Number(part.size) || 12
+            )
+          )
+        },
+
+        def: undefined
+      };
+    }
+
+
+    if (part.type === "indicator") {
+      const category =
+        resolveIndicatorCategory(part);
+
+      return {
+        template: "%" + paramNumber,
+
+        param: {
+          type: "Indicator",
+          img:
+            "block_icon/" +
+            category +
+            "_icon.svg",
+
+          size: Math.max(
+            8,
+            Math.min(
+              24,
+              Number(part.size) || 11
+            )
+          )
+        },
+
+        def: null
+      };
+    }
+
+
+    if (part.type === "linebreak") {
+      return {
+        template: "%" + paramNumber,
+
+        param: {
+          type: "LineBreak"
+        },
+
+        def: undefined
+      };
+    }
+
+
+    if (part.type === "dropdown") {
+      const options =
+        Array.isArray(part.options) &&
+        part.options.length
+
+          ? part.options.map(
+              (item) => [
+                String(item.label ?? ""),
+                String(item.value ?? "")
+              ]
+            )
+
+          : [["항목 1", "1"]];
+
+
+      const optionValues =
+        options.map((item) => item[1]);
+
+
+      const requested =
+        String(
+          part.defaultValue ??
+          optionValues[0] ??
+          ""
+        );
+
+
+      const defaultValue =
+        optionValues.includes(requested)
+          ? requested
+          : optionValues[0];
+
+
+      return {
+        template: "%" + paramNumber,
+
+        param: {
+          type: "Dropdown",
+          options,
+          fontSize: 11,
+          arrowColor: borderColor,
+          value: defaultValue
+        },
+
+        def: defaultValue
+      };
+    }
+
+
+    return null;
+  }
+
+
+  function compileBlock(
+    categoryId,
+    block,
+    index
+  ) {
+
+    const blockColor =
+      rgbToHex(
+        block.color ||
+        {
+          r: 79,
+          g: 99,
+          b: 255,
+          a: 255
+        }
+      );
+
+
+    const borderColor =
+      rgbToHex(
+        block.border ||
+        {
+          r: 52,
+          g: 70,
+          b: 210,
+          a: 255
+        }
+      );
+
+
+    const blockId =
+      sanitizeId(categoryId) +
+      "_" +
+      sanitizeId(
+        block.id ||
+        ("block_" + (index + 1))
+      );
+
+
+    const params = [];
+    const defs = [];
+    const map = [];
+    const templatePieces = [];
+
+    let paramNumber = 1;
+
+
+    for (const part of block.parts || []) {
+
+      // LineBreak는 IF ELSE 전용
+      if (
+        part?.type === "linebreak" &&
+        block.skeleton !==
+          "basic_double_loop"
+      ) {
+        continue;
+      }
+
+
+      if (part?.type === "label") {
+        const text =
+          String(part.text || "").trim();
+
+        if (text) {
+          templatePieces.push(text);
+        }
+
+        continue;
+      }
+
+
+      const compiled =
+        buildPart(
+          part,
+          paramNumber,
+          borderColor
+        );
+
+
+      if (!compiled) {
+        continue;
+      }
+
+
+      templatePieces.push(
+        compiled.template
+      );
+
+      params.push(
+        compiled.param
+      );
+
+
+      if (
+        compiled.def !== undefined
+      ) {
+        defs.push(compiled.def);
+      }
+
+
+      map.push(
+        "P" + paramNumber
+      );
+
+      paramNumber++;
+    }
+
+
+    const paramsKeyMap = {};
+
+    map.forEach(
+      (key, index) => {
+        paramsKeyMap[key] = index;
+      }
+    );
+
+
+    const template =
+      templatePieces
+        .join(" ")
+        .replace(/\\s+/g, " ")
+        .trim() ||
+
+      ("블록 " + (index + 1));
+
+
+    const skeleton =
+      block.skeleton || "basic";
+
+
+    const definition = {
+      color: blockColor,
+      outerLine: borderColor,
+      fontColor: "#ffffffff",
+
+      skeleton,
+
+      statement: [],
+
+      params,
+
+      events: {},
+
+      def: {
+        params: defs,
+        type: blockId
+      },
+
+      paramsKeyMap,
+
+      class: "ubg_generated",
+
+      func: async () => {},
+
+      template
+    };
+
+
+    return {
+      id: blockId,
+      definition
+    };
+  }
+
+
+  if (
+    !window.Entry ||
+    !Entry.block
+  ) {
+    console.error(
+      "[비공식 블록] Entry를 찾을 수 없습니다."
+    );
+
+    return;
+  }
+
+
+  if (!Array.isArray(Entry.staticBlocks)) {
+    const blocks =
+      window.EntryStatic
+        ?.getAllBlocks?.();
+
+    Entry.staticBlocks =
+      Array.isArray(blocks)
+        ? [...blocks]
+        : [];
+  }
+
+
+  const categoryInfos = [];
+
+
+  for (
+    let categoryIndex = 0;
+    categoryIndex < design.categories.length;
+    categoryIndex++
+  ) {
+
+    const category =
+      design.categories[categoryIndex];
+
+
+    const categoryId =
+      sanitizeId(
+        category.id ||
+        (
+          "ubg_category_" +
+          (categoryIndex + 1)
+        )
+      );
+
+
+    const categoryName =
+      String(
+        category.name ||
+        (
+          "카테고리 " +
+          (categoryIndex + 1)
+        )
+      );
+
+
+    const blocks =
+      Array.isArray(category.blocks)
+        ? category.blocks
+        : [];
+
+
+    // 기존 같은 카테고리 제거
+    for (
+      let i =
+        Entry.staticBlocks.length - 1;
+      i >= 0;
+      i--
+    ) {
+
+      const old =
+        Entry.staticBlocks[i];
+
+
+      if (
+        old?.category !== categoryId
+      ) {
+        continue;
+      }
+
+
+      for (
+        const oldBlockId
+        of old.blocks || []
+      ) {
+        delete Entry.block[
+          oldBlockId
+        ];
+      }
+
+
+      Entry.staticBlocks.splice(
+        i,
+        1
+      );
+    }
+
+
+    const compiledBlocks =
+      blocks.map(
+        (block, index) =>
+          compileBlock(
+            categoryId,
+            block,
+            index
+          )
+      );
+
+
+    const blockIds =
+      compiledBlocks.map(
+        (item) => item.id
+      );
+
+
+    for (
+      const item
+      of compiledBlocks
+    ) {
+
+      Entry.block[item.id] =
+        item.definition;
+
+
+      // IF
+      if (
+        item.definition.skeleton ===
+        "basic_loop"
+      ) {
+
+        Entry.block[item.id].class =
+          "condition";
+
+
+        Entry.block[item.id].statements =
+          [
+            {
+              accept: "basic"
+            }
+          ];
+
+
+        Entry.block[
+          item.id
+        ].statementsKeyMap = {
+          STACK: 0
+        };
+      }
+
+
+      // IF ELSE
+      if (
+        item.definition.skeleton ===
+        "basic_double_loop"
+      ) {
+
+        Entry.block[item.id].class =
+          "condition";
+
+
+        Entry.block[
+          item.id
+        ].statements = [
+          {
+            accept: "basic"
+          },
+          {
+            accept: "basic"
+          }
+        ];
+
+
+        Entry.block[
+          item.id
+        ].statementsKeyMap = {
+          STACK_IF: 0,
+          STACK_ELSE: 1
+        };
+      }
+    }
+
+
+    Entry.staticBlocks.push({
+      category: categoryId,
+      visible: true,
+      blocks: blockIds
+    });
+
+
+    const firstBlock =
+      blocks[0] || {};
+
+
+    categoryInfos.push({
+      id: categoryId,
+      name: categoryName,
+
+      blockColor:
+        rgbToHex(
+          firstBlock.color ||
+          {
+            r: 79,
+            g: 99,
+            b: 255,
+            a: 255
+          }
+        )
+    });
+  }
+
+
+  const blockMenu =
+    Entry.playground
+      ?.mainWorkspace
+      ?.blockMenu ||
+
+    Entry.playground
+      ?.blockMenu;
+
+
+  if (!blockMenu) {
+    console.error(
+      "[비공식 블록] 블록 메뉴를 찾을 수 없습니다."
+    );
+
+    return;
+  }
+
+
+  if (
+    typeof blockMenu.setCategoryData ===
+    "function"
+  ) {
+
+    blockMenu.setCategoryData(
+      Entry.staticBlocks
+    );
+  }
+
+
+  for (
+    const info
+    of categoryInfos
+  ) {
+
+    const element =
+      document.getElementById(
+        "entryCategory" + info.id
+      );
+
+
+    if (element) {
+      element.textContent =
+        info.name;
+    }
+  }
+
+
+  console.log(
+    "[비공식 블록] 등록 완료"
+  );
+
+})();
+`;
+}
   function validateDesign() {
     if (!design.categories.length) return "카테고리를 하나 이상 만들어 주세요.";
 
@@ -715,7 +1402,46 @@ editingBlock.skeleton = blockShape.value;
     renderCategories();
     closeEditor();
   });
+copyDistBtn.addEventListener(
+  "click",
+  async () => {
 
+    if (!hasBlocks()) {
+      return;
+    }
+
+    const code =
+      makeDistributionJs();
+
+    try {
+      await navigator.clipboard.writeText(
+        code
+      );
+
+      statusBox.textContent =
+        "배포용 JS 코드가 복사되었습니다.";
+    } catch (error) {
+
+      const textarea =
+        document.createElement("textarea");
+
+      textarea.value = code;
+
+      document.body.appendChild(
+        textarea
+      );
+
+      textarea.select();
+
+      document.execCommand("copy");
+
+      textarea.remove();
+
+      statusBox.textContent =
+        "배포용 JS 코드가 복사되었습니다.";
+    }
+  }
+);
   registerBtn.addEventListener("click", sendRegisterRequest);
 
   modalBackdrop.addEventListener("click", (event) => {
