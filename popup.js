@@ -200,16 +200,39 @@ function createDefaultBlock(index) {
   }
 
   function describeBlock(block) {
-    const names = {
-      label: "이름",
-      value: "값",
-      boolean: "boolean",
-      textInput: "텍스트",
-      indicator: "인디케이터",
-      dropdown: "드롭다운"
-    };
-    return (block.parts || []).map((part) => names[part.type] || part.type).join(" · ");
-  }
+  const shapeNames = {
+    basic: "기본 블록",
+    basic_string_field: "값 블록",
+    basic_boolean_field: "판단 블록",
+    basic_without_next: "끝 블록",
+    basic_loop: "if 블록",
+    basic_double_loop: "if else 블록",
+    basic_event: "시작 블록"
+  };
+
+  const partNames = {
+    label: "이름",
+    value: "값",
+    boolean: "boolean",
+    textInput: "텍스트",
+    indicator: "인디케이터",
+    dropdown: "드롭다운",
+    linebreak: "줄바꿈"
+  };
+
+  const shape =
+    shapeNames[block.skeleton || "basic"] ||
+    block.skeleton ||
+    "기본 블록";
+
+  const parts = (block.parts || [])
+    .map((part) => partNames[part.type] || part.type)
+    .join(" · ");
+
+  return parts
+    ? `${shape} · ${parts}`
+    : shape;
+}
 
   function renderCategories() {
     categoriesList.innerHTML = "";
