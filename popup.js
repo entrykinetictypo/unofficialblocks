@@ -1309,7 +1309,7 @@ function makeDistributionJs() {
   element.textContent = info.name;
 
   element.style.backgroundImage =
-    `url(/lib/entry-js/images/${info.icon}.svg)`;
+  "url(/lib/entry-js/images/" + info.icon + ".svg)";
 
   element.style.backgroundRepeat =
     "no-repeat";
