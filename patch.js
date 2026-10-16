@@ -345,37 +345,62 @@ return {
   }
 
   function refreshCategoryView(blockMenu, categoryInfos) {
-    const categories = [];
-    const seen = new Set();
 
-    for (const item of Entry.staticBlocks) {
-      if (!item?.category || seen.has(item.category)) continue;
-      seen.add(item.category);
-      categories.push({
-        category: item.category,
-        visible: item.category !== "arduino"
-      });
-    }
-
-    blockMenu._generateCategoryView(categories);
-
-    document
-      .querySelectorAll(".entryCategoryElementWorkspace")
-      .forEach((element) => {
-        if (element.id !== "entryCategorytext") {
-          element.className = "entryCategoryElementWorkspace";
-        }
-      });
-
-    blockMenu._categoryData = Entry.staticBlocks;
-
-    for (const info of categoryInfos) {
-      blockMenu._generateCategoryCode(info.id);
-    }
-
-    applyCategoryStyles(categoryInfos);
+  // ★ 기존 블록 메뉴를 완전히 초기화
+  if (typeof Entry.playground?.setBlockMenu === "function") {
+    Entry.playground.setBlockMenu();
   }
 
+  // setBlockMenu 후 blockMenu 객체를 다시 가져와야 함
+  blockMenu = getBlockMenu();
+
+  if (!blockMenu) {
+    return;
+  }
+
+
+  const categories = [];
+  const seen = new Set();
+
+  for (const item of Entry.staticBlocks) {
+    if (!item?.category || seen.has(item.category)) {
+      continue;
+    }
+
+    seen.add(item.category);
+
+    categories.push({
+      category: item.category,
+      visible: item.category !== "arduino"
+    });
+  }
+
+
+  // 카테고리 목록 다시 생성
+  blockMenu._generateCategoryView(categories);
+
+
+  document
+    .querySelectorAll(".entryCategoryElementWorkspace")
+    .forEach((element) => {
+      if (element.id !== "entryCategorytext") {
+        element.className = "entryCategoryElementWorkspace";
+      }
+    });
+
+
+  // 현재 Entry.staticBlocks 기준으로 다시 설정
+  blockMenu._categoryData = Entry.staticBlocks;
+
+
+  // 커스텀 카테고리 블록은 딱 한 번 생성
+  for (const info of categoryInfos) {
+    blockMenu._generateCategoryCode(info.id);
+  }
+
+
+  applyCategoryStyles(categoryInfos);
+}
   function registerConfig(rawConfig) {
     if (!isReady()) {
       pendingConfig = rawConfig;
