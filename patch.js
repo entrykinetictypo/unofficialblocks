@@ -285,23 +285,7 @@ const definition = {
 };
 
 
-// 동족 섭취 블록
-if (skeleton === "basic_loop") {
-  definition.statements = [null];
-  definition.statementsKeyMap = {
-    STACK: 0
-  };
-}
 
-
-// 이구룡 블록
-if (skeleton === "basic_double_loop") {
-  definition.statements = [null, null];
-  definition.statementsKeyMap = {
-    STACK_IF: 0,
-    STACK_ELSE: 1
-  };
-}
 
 
 return {
@@ -456,9 +440,27 @@ return {
       const blockIds = compiledBlocks.map((item) => item.id);
 
       for (const item of compiledBlocks) {
-        Entry.block[item.id] = item.definition;
-      }
+  Entry.block[item.id] = item.definition;
 
+  // if 블록
+  if (item.definition.skeleton === "basic_loop") {
+    Entry.block[item.id].statements = [null];
+
+    Entry.block[item.id].statementsKeyMap = {
+      STACK: 0
+    };
+  }
+
+  // if else 블록
+  if (item.definition.skeleton === "basic_double_loop") {
+    Entry.block[item.id].statements = [null, null];
+
+    Entry.block[item.id].statementsKeyMap = {
+      STACK_IF: 0,
+      STACK_ELSE: 1
+    };
+  }
+}
       for (const oldBlockId of previousBlockIds) {
         if (!blockIds.includes(oldBlockId)) {
           delete Entry.block[oldBlockId];
