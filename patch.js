@@ -345,60 +345,17 @@ return {
   }
 
   function refreshCategoryView(blockMenu, categoryInfos) {
-
-  // ★ 기존 블록 메뉴를 완전히 초기화
-  if (typeof Entry.playground?.setBlockMenu === "function") {
-    Entry.playground.setBlockMenu();
-  }
-
-  // setBlockMenu 후 blockMenu 객체를 다시 가져와야 함
   blockMenu = getBlockMenu();
 
   if (!blockMenu) {
     return;
   }
 
+  // 기존 블록 메뉴를 싹 비우고
+  // 현재 Entry.staticBlocks 기준으로 처음부터 다시 생성
+  blockMenu.setCategoryData(Entry.staticBlocks);
 
-  const categories = [];
-  const seen = new Set();
-
-  for (const item of Entry.staticBlocks) {
-    if (!item?.category || seen.has(item.category)) {
-      continue;
-    }
-
-    seen.add(item.category);
-
-    categories.push({
-      category: item.category,
-      visible: item.category !== "arduino"
-    });
-  }
-
-
-  // 카테고리 목록 다시 생성
-  blockMenu._generateCategoryView(categories);
-
-
-  document
-    .querySelectorAll(".entryCategoryElementWorkspace")
-    .forEach((element) => {
-      if (element.id !== "entryCategorytext") {
-        element.className = "entryCategoryElementWorkspace";
-      }
-    });
-
-
-  // 현재 Entry.staticBlocks 기준으로 다시 설정
-  blockMenu._categoryData = Entry.staticBlocks;
-
-
-  // 커스텀 카테고리 블록은 딱 한 번 생성
-  for (const info of categoryInfos) {
-    blockMenu._generateCategoryCode(info.id);
-  }
-
-
+  // 커스텀 카테고리 이름/색상 다시 적용
   applyCategoryStyles(categoryInfos);
 }
   function registerConfig(rawConfig) {
@@ -443,7 +400,7 @@ return {
       const categoryName = String(category.name || category.categoryName || `카테고리 ${categoryIndex + 1}`);
       const blocks = Array.isArray(category.blocks) ? category.blocks : [];
 
-      const previousBlockIds = new Set();
+      
 
 for (let i = Entry.staticBlocks.length - 1; i >= 0; i--) {
   const item = Entry.staticBlocks[i];
@@ -453,7 +410,7 @@ for (let i = Entry.staticBlocks.length - 1; i >= 0; i--) {
   }
 
   for (const oldBlockId of item.blocks || []) {
-    previousBlockIds.add(oldBlockId);
+    
     delete Entry.block[oldBlockId];
   }
 
