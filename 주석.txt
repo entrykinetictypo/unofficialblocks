@@ -715,5 +715,68 @@ const newtext = (blockname, template, color, params, _class, func, skeleton = 'b
     }
 
 }
+const color = {
+    color: '#6223d5ff',
+    outerline: '#3c0163ff',
+    fontColor: '#ffffffff'
+};
 
+// IF
+addBlock(
+    'hew_warning_if',
+    '만일 %1에서 경고가 뜨는가',
+    color,
+    {
+        params: [
+            { type: 'Block', accept: 'boolean' }
+        ],
+        def: [true],
+        map: {}
+    },
+    'condition',
+    function(sprite, script) {
+        return script.callReturn();
+    },
+    'basic_loop'
+);
+
+// IF ELSE
+addBlock(
+    'hew_warning_if_else',
+    '만일 %1에서 경고가 뜨는가%2아니면',
+    color,
+    {
+        params: [
+            { type: 'Block', accept: 'boolean' },
+            { type: 'LineBreak' }
+        ],
+        def: [true, null],
+        map: {}
+    },
+    'condition',
+    function(sprite, script) {
+        return script.callReturn();
+    },
+    'basic_double_loop'
+);
+
+// 카테고리에 추가
+const categoryName = 'right_click';
+const category = Entry.staticBlocks.find(
+    c => c.category === categoryName
+);
+
+if (category) {
+    for (const id of ['hew_warning_if', 'hew_warning_if_else']) {
+        if (!category.blocks.includes(id)) {
+            category.blocks.push(id);
+        }
+    }
+}
+
+updateCategory(categoryName, {
+    name: '우클릭',
+    background: '/lib/entry-js/images/judgement.svg',
+    backgroundSize: 28
+});
 
