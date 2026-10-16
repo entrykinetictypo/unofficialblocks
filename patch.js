@@ -420,15 +420,40 @@ return {
 
       const previousBlockIds = new Set();
 
-      for (let i = Entry.staticBlocks.length - 1; i >= 0; i--) {
-        const item = Entry.staticBlocks[i];
-        if (item?.category !== categoryId) continue;
+for (let i = Entry.staticBlocks.length - 1; i >= 0; i--) {
+  const item = Entry.staticBlocks[i];
 
-        for (const oldBlockId of item.blocks || []) {
-          previousBlockIds.add(oldBlockId);
-        }
-        Entry.staticBlocks.splice(i, 1);
-      }
+  if (item?.category !== categoryId) {
+    continue;
+  }
+
+  for (const oldBlockId of item.blocks || []) {
+    previousBlockIds.add(oldBlockId);
+    delete Entry.block[oldBlockId];
+  }
+
+  Entry.staticBlocks.splice(i, 1);
+}
+
+
+// 기존 카테고리 버튼 제거
+const oldCategoryElement =
+  document.getElementById(`entryCategory${categoryId}`);
+
+if (oldCategoryElement) {
+  oldCategoryElement.remove();
+}
+
+
+// 기존 스타일 제거
+const oldStyle =
+  document.getElementById(
+    `ubg-style-${sanitizeId(categoryId)}`
+  );
+
+if (oldStyle) {
+  oldStyle.remove();
+}
 
       const compiledBlocks = blocks.map((block, index) => compileBlock(categoryId, block, index));
       const blockIds = compiledBlocks.map((item) => item.id);
@@ -464,11 +489,7 @@ return {
     };
   }
 }
-      for (const oldBlockId of previousBlockIds) {
-        if (!blockIds.includes(oldBlockId)) {
-          delete Entry.block[oldBlockId];
-        }
-      }
+
 
       Entry.staticBlocks.push({
         category: categoryId,
