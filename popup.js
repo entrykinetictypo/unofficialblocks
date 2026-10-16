@@ -179,6 +179,7 @@ function createDefaultBlock(index) {
 
       if (!normalized.id) normalized.id = uid("ubg_category");
       normalized.name = String(normalized.name ?? normalized.categoryName ?? "");
+      if (!normalized.icon) normalized.icon = "flow";
       if (!Array.isArray(normalized.blocks) || !normalized.blocks.length) {
         normalized.blocks = [createDefaultBlock(0)];
       }
@@ -1248,6 +1249,7 @@ function makeDistributionJs() {
     categoryInfos.push({
       id: categoryId,
       name: categoryName,
+      icon: category.icon || "flow",
 
       blockColor:
         rgbToHex(
@@ -1304,9 +1306,14 @@ function makeDistributionJs() {
 
 
     if (element) {
-      element.textContent =
-        info.name;
-    }
+  element.textContent = info.name;
+
+  element.style.backgroundImage =
+    `url(/lib/entry-js/images/${info.icon}.svg)`;
+
+  element.style.backgroundRepeat =
+    "no-repeat";
+}
   }
 
 
