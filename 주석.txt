@@ -721,62 +721,110 @@ const color = {
     fontColor: '#ffffffff'
 };
 
-// IF
-addBlock(
-    'hew_warning_if',
-    '만일 %1에서 경고가 뜨는가',
-    color,
-    {
-        params: [
-            { type: 'Block', accept: 'boolean' }
-        ],
-        def: [true],
-        map: {}
-    },
-    'condition',
-    function(sprite, script) {
-        return script.callReturn();
-    },
-    'basic_loop'
-);
+(() => {
+    const color = {
+        color: '#19baea',
+        outerline: '#1498c0',
+        fontColor: '#ffffff'
+    };
 
-// IF ELSE
-addBlock(
-    'hew_warning_if_else',
-    '만일 %1에서 경고가 뜨는가%2아니면',
-    color,
-    {
-        params: [
-            { type: 'Block', accept: 'boolean' },
-            { type: 'LineBreak' }
-        ],
-        def: [true, null],
-        map: {}
-    },
-    'condition',
-    function(sprite, script) {
-        return script.callReturn();
-    },
-    'basic_double_loop'
-);
+    // 1. IF
+    addBlock(
+        'hew_warning_if',
+        '만일 %1에서 경고가 뜨는가%2',
+        color,
+        {
+            params: [
+                { type: 'Block', accept: 'boolean' },
+                {
+                    type: 'Indicator',
+                    img: 'block_icon/flow_icon.svg',
+                    size: 11
+                }
+            ],
+            def: [
+                { type: 'True' },
+                null
+            ],
+            map: { BOOL: 0 }
+        },
+        'condition',
+        Entry.block._if.func,
+        'basic_loop'
+    );
 
-// 카테고리에 추가
-const categoryName = 'right_click';
-const category = Entry.staticBlocks.find(
-    c => c.category === categoryName
-);
+    Entry.block.hew_warning_if.statements = [
+        { accept: 'basic' }
+    ];
 
-if (category) {
-    for (const id of ['hew_warning_if', 'hew_warning_if_else']) {
+    Entry.block.hew_warning_if.statementsKeyMap = {
+        STACK: 0
+    };
+
+    // 2. IF ELSE
+    addBlock(
+        'hew_warning_if_else',
+        '만일 %1에서 경고가 뜨는가%2아니면%3',
+        color,
+        {
+            params: [
+                { type: 'Block', accept: 'boolean' },
+                {
+                    type: 'Indicator',
+                    img: 'block_icon/flow_icon.svg',
+                    size: 11
+                },
+                { type: 'LineBreak' }
+            ],
+            def: [
+                { type: 'True' },
+                null
+            ],
+            map: { BOOL: 0 }
+        },
+        'condition',
+        Entry.block.if_else.func,
+        'basic_double_loop'
+    );
+
+    Entry.block.hew_warning_if_else.statements = [
+        { accept: 'basic' },
+        { accept: 'basic' }
+    ];
+
+    Entry.block.hew_warning_if_else.statementsKeyMap = {
+        STACK_IF: 0,
+        STACK_ELSE: 1
+    };
+
+    // 3. 카테고리 등록
+    const categoryName = 'right_click';
+    let category = Entry.staticBlocks.find(
+        c => c.category === categoryName
+    );
+
+    if (!category) {
+        category = {
+            category: categoryName,
+            blocks: []
+        };
+        Entry.staticBlocks.push(category);
+    }
+
+    for (const id of [
+        'hew_warning_if',
+        'hew_warning_if_else'
+    ]) {
         if (!category.blocks.includes(id)) {
             category.blocks.push(id);
         }
     }
-}
 
-updateCategory(categoryName, {
-    name: '우클릭',
-    background: '/lib/entry-js/images/judgement.svg',
-    backgroundSize: 28
-});
+    updateCategory(categoryName, {
+        name: '우클릭',
+        background: '/lib/entry-js/images/judgement.svg',
+        backgroundSize: 28
+    });
 
+    console.log('IF / IF ELSE 블록 등록 완료');
+})();
