@@ -238,6 +238,12 @@ if (part.type === "linebreak") {
     let mapIndex = 0;
 
     for (const part of block.parts || []) {
+      if (
+  part?.type === "linebreak" &&
+  block.skeleton !== "basic_double_loop"
+) {
+  continue;
+}
       if (part?.type === "label") {
         const text = String(part.text || "").trim();
         if (text) templatePieces.push(text);
