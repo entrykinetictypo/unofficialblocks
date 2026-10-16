@@ -150,25 +150,19 @@
     }
 
     if (part.type === "boolean") {
-      const trueText = String(part.trueText || "참");
-      const falseText = String(part.falseText || "거짓");
-      const defaultValue = String(part.defaultValue) === "false" ? "false" : "true";
+  return {
+    template: `%${paramNumber}`,
 
-      return {
-        template: `%${paramNumber}`,
-        param: {
-          type: "Dropdown",
-          options: [
-            [trueText, "true"],
-            [falseText, "false"]
-          ],
-          fontSize: 11,
-          arrowColor: borderColor,
-          value: defaultValue
-        },
-        def: defaultValue
-      };
+    param: {
+      type: "Block",
+      accept: "boolean"
+    },
+
+    def: {
+      type: "True"
     }
+  };
+}
 
     if (part.type === "textInput") {
       return {
@@ -194,7 +188,7 @@
           img: `block_icon/${indicatorCategory}_icon.svg`,
           size: Math.max(8, Math.min(24, Number(part.size) || 11))
         },
-        def: undefined
+        def: null
       };
     }
 if (part.type === "linebreak") {
@@ -442,18 +436,27 @@ return {
       for (const item of compiledBlocks) {
   Entry.block[item.id] = item.definition;
 
-  // if 블록
+  // IF
   if (item.definition.skeleton === "basic_loop") {
-    Entry.block[item.id].statements = [null];
+    Entry.block[item.id].class = "condition";
+
+    Entry.block[item.id].statements = [
+      { accept: "basic" }
+    ];
 
     Entry.block[item.id].statementsKeyMap = {
       STACK: 0
     };
   }
 
-  // if else 블록
+  // IF ELSE
   if (item.definition.skeleton === "basic_double_loop") {
-    Entry.block[item.id].statements = [null, null];
+    Entry.block[item.id].class = "condition";
+
+    Entry.block[item.id].statements = [
+      { accept: "basic" },
+      { accept: "basic" }
+    ];
 
     Entry.block[item.id].statementsKeyMap = {
       STACK_IF: 0,
