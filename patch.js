@@ -331,12 +331,12 @@ return {
 
       style.textContent = `
 #entryCategory${info.id} {
-  background-image: url(/lib/entry-js/images/flow.svg);
+  background-image: url(/lib/entry-js/images/${info.icon}.svg);
   background-repeat: no-repeat;
   margin-bottom: 1px;
 }
 .entrySelectedCategory#entryCategory${info.id} {
-  background-image: url(/lib/entry-js/images/flow_on.svg);
+  background-image: url(/lib/entry-js/images/${info.icon}_on.svg);
   background-color: ${info.blockColor};
   border-color: ${info.borderColor};
   color: #fff;
@@ -486,9 +486,10 @@ if (oldStyle) {
       });
 
       const firstBlock = blocks[0] || {};
-      categoryInfos.push({
+      categoryInfos.push({ 
         id: categoryId,
         name: categoryName,
+        icon: category.icon || "flow",
         blockColor: rgbToHex(firstBlock.color || { r: 79, g: 99, b: 255 }),
         borderColor: rgbToHex(firstBlock.border || { r: 52, g: 70, b: 210 }),
         blockIds
