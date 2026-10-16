@@ -102,12 +102,13 @@ function createDefaultBlock(index) {
   }
 
   function createDefaultCategory(index) {
-    return {
-      id: uid("ubg_category"),
-      name: index === 0 ? "" : `카테고리 ${index + 1}`,
-      blocks: [createDefaultBlock(0)]
-    };
-  }
+  return {
+    id: uid("ubg_category"),
+    name: index === 0 ? "" : `카테고리 ${index + 1}`,
+    icon: "flow",
+    blocks: [createDefaultBlock(0)]
+  };
+}
 
   function createDefaultDesign() {
     return {
@@ -290,6 +291,27 @@ function updateCopyDistButton() {
       nameLabel.appendChild(nameInput);
       nameWrap.appendChild(nameLabel);
       card.appendChild(nameWrap);
+      const iconLabel = document.createElement("label");
+iconLabel.textContent = "카테고리 아이콘";
+
+const iconSelect = document.createElement("select");
+
+for (const [name, code] of INDICATOR_CATEGORIES) {
+  const option = document.createElement("option");
+  option.value = code;
+  option.textContent = name;
+  iconSelect.appendChild(option);
+}
+
+iconSelect.value = category.icon || "flow";
+
+iconSelect.addEventListener("change", () => {
+  design.categories[categoryIndex].icon = iconSelect.value;
+  saveDesign();
+});
+
+iconLabel.appendChild(iconSelect);
+nameWrap.appendChild(iconLabel);
 
       const blocksTitle = document.createElement("h2");
       blocksTitle.textContent = "블록 만들기";
