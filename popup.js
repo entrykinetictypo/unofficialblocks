@@ -3,22 +3,45 @@
 
   const DESIGN_KEY = "ubg_design_v1";
 
-  const INDICATOR_CATEGORIES = [
-    ["시작", "start"],
-    ["흐름", "flow"],
-    ["움직임", "moving"],
-    ["생김새", "looks"],
-    ["붓", "brush"],
-    ["소리", "sound"],
-    ["판단", "judgement"],
-    ["계산", "calc"],
-    ["자료", "variable"],
-    ["함수", "func"],
-    ["데이터분석", "analysis"],
-    ["인공지능", "ai_utilize"],
-    ["확장", "expansion"],
-    ["하드웨어", "hardware"]
-  ];
+ const ICON_OPTIONS = [
+  ["시작", "start_icon.svg"],
+  ["시작 - 재생", "start_icon_play.svg"],
+  ["시작 - 복제", "start_icon_clone.svg"],
+  ["시작 - 키보드", "start_icon_keyboard.svg"],
+  ["시작 - 마우스", "start_icon_mouse.svg"],
+  ["시작 - 신호", "start_icon_signal.svg"],
+  ["시작 - 장면", "start_icon_scene.svg"],
+  ["시작 - 얼굴", "start_icon_face.svg"],
+  ["시작 - 손", "start_icon_hand.svg"],
+  ["시작 - 포즈", "start_icon_pose.svg"],
+  ["시작 - 사물", "start_icon_object.svg"],
+
+  ["AI - 얼굴", "ai_face_icon.svg"],
+  ["AI - 손", "ai_hand_icon.svg"],
+  ["AI - 사물", "ai_object_icon.svg"],
+  ["AI - 포즈", "ai_pose_icon.svg"],
+  ["AI - 영상", "ai_video_icon.svg"],
+  ["AI", "ai_utilize_icon.svg"],
+
+  ["흐름", "flow_icon.svg"],
+  ["움직임", "moving_icon.svg"],
+  ["생김새", "looks_icon.svg"],
+  ["붓", "brush_icon.svg"],
+  ["소리", "sound_icon.svg"],
+  ["계산", "calc_icon.svg"],
+  ["자료", "variable_icon.svg"],
+  ["함수", "func_icon.svg"],
+
+  ["데이터분석", "block_analysis.svg"],
+
+  ["하드웨어", "hardware_icon.svg"],
+  ["하드웨어 Lite", "hardwarelite_icon.svg"],
+  ["하드웨어 - LED", "hardware_led.svg"],
+  ["하드웨어 - DC", "hardware_dc.svg"],
+  ["하드웨어 - 부저", "hardware_bzr2.svg"],
+  ["시작 - 하드웨어", "start_icon_hardware.svg"],
+  ["시작 - 하드웨어 Lite", "start_icon_hardwarelite.svg"]
+];
 
   const INDICATOR_CODE_TO_NAME = Object.fromEntries(
     INDICATOR_CATEGORIES.map(([name, code]) => [code, name])
@@ -164,7 +187,7 @@ function createDefaultBlock(index) {
   return {
     id: uid("ubg_category"),
     name: index === 0 ? "" : `카테고리 ${index + 1}`,
-    icon: "flow",
+    icon: "flow_icon.svg",
     blocks: [createDefaultBlock(0)]
   };
 }
@@ -271,7 +294,18 @@ function createDefaultBlock(index) {
 
       if (!normalized.id) normalized.id = uid("ubg_category");
       normalized.name = String(normalized.name ?? normalized.categoryName ?? "");
-      if (!normalized.icon) normalized.icon = "flow";
+      if (!normalized.icon) {
+  normalized.icon = "flow_icon.svg";
+}
+
+// 예전 저장값 호환
+if (
+  normalized.icon &&
+  !normalized.icon.endsWith(".svg")
+) {
+  normalized.icon =
+    normalized.icon + "_icon.svg";
+}
       if (!Array.isArray(normalized.blocks) || !normalized.blocks.length) {
         normalized.blocks = [createDefaultBlock(0)];
       }
@@ -389,13 +423,18 @@ iconLabel.textContent = "카테고리 아이콘";
 
 const iconSelect = document.createElement("select");
 
-for (const [name, code] of INDICATOR_CATEGORIES) {
-  const option = document.createElement("option");
-  option.value = code;
+for (const [name, file] of ICON_OPTIONS) {
+  const option =
+    document.createElement("option");
+
+  option.value = file;
   option.textContent = name;
-  iconSelect.appendChild(option);
+
+  indicatorSelect.appendChild(option);
 }
 
+iconSelect.value =
+  category.icon || "flow_icon.svg";
 iconSelect.value = category.icon || "flow";
 
 iconSelect.addEventListener("change", () => {
