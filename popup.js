@@ -578,7 +578,22 @@ nameWrap.appendChild(iconLabel);
       size.min = "8";
       size.max = "24";
       container.appendChild(makeField("글자 크기", size));
-      return;
+
+const colorTitle = document.createElement("div");
+colorTitle.className = "hint";
+colorTitle.textContent = "글씨 색 (RGBA)";
+container.appendChild(colorTitle);
+
+container.appendChild(
+  makeRgbaEditor(
+    part.color,
+    (color) => {
+      editingBlock.parts[index].color = color;
+    }
+  )
+);
+
+return;
     }
 
     if (part.type === "indicator") {
