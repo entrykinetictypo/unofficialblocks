@@ -5,21 +5,34 @@
   const PATCH_SOURCE = "UBG_PATCH";
   const GENERATED_CATEGORY_PREFIX = "ubg_category_";
 
-  const INDICATOR_NAME_TO_CODE = {
-    "시작": "start",
-    "흐름": "flow",
-    "움직임": "moving",
-    "생김새": "looks",
-    "붓": "brush",
-    "소리": "sound",
-    "판단": "judgement",
-    "계산": "calc",
-    "자료": "variable",
-    "함수": "func",
-    "데이터분석": "analysis",
-    "인공지능": "ai_utilize",
-    "확장": "expansion",
-    "하드웨어": "hardware"
+  const LEGACY_INDICATOR_NAME_TO_FILE = {
+    "시작": "start_icon.svg",
+    "흐름": "flow_icon.svg",
+    "움직임": "moving_icon.svg",
+    "생김새": "looks_icon.svg",
+    "붓": "brush_icon.svg",
+    "소리": "sound_icon.svg",
+    "계산": "calc_icon.svg",
+    "자료": "variable_icon.svg",
+    "함수": "func_icon.svg",
+    "데이터분석": "block_analysis.svg",
+    "인공지능": "ai_utilize_icon.svg",
+    "하드웨어": "hardware_icon.svg"
+  };
+
+  const LEGACY_INDICATOR_CODE_TO_FILE = {
+    start: "start_icon.svg",
+    flow: "flow_icon.svg",
+    moving: "moving_icon.svg",
+    looks: "looks_icon.svg",
+    brush: "brush_icon.svg",
+    sound: "sound_icon.svg",
+    calc: "calc_icon.svg",
+    variable: "variable_icon.svg",
+    func: "func_icon.svg",
+    analysis: "block_analysis.svg",
+    ai_utilize: "ai_utilize_icon.svg",
+    hardware: "hardware_icon.svg"
   };
 
   let pendingConfig = null;
@@ -60,22 +73,29 @@
       .slice(0, 80) || "item";
   }
 
-  function resolveIndicatorCategory(part) {
-    const byName = INDICATOR_NAME_TO_CODE[String(part?.categoryName || "").trim()];
+  function resolveIndicatorFile(part) {
+    const direct = String(part?.indicatorFile || "").trim();
+    if (/^[a-zA-Z0-9_.-]+\.svg$/i.test(direct)) {
+      return direct;
+    }
+
+    const byName = LEGACY_INDICATOR_NAME_TO_FILE[
+      String(part?.categoryName || "").trim()
+    ];
     if (byName) return byName;
 
     // v0.1.1 호환: flow 같은 내부 코드가 저장돼 있던 경우
     const legacyCategory = String(part?.category || "").trim();
-    if (/^[a-zA-Z0-9_-]+$/.test(legacyCategory) && legacyCategory) {
-      return legacyCategory;
-    }
+    const byCode = LEGACY_INDICATOR_CODE_TO_FILE[legacyCategory];
+    if (byCode) return byCode;
 
+    // 예전 img에 block_icon/파일명.svg가 직접 저장돼 있던 경우
     const legacyMatch = String(part?.img || "").match(
-      /block_icon\/([^/]+?)_icon\.svg$/i
+      /block_icon\/([^/]+\.svg)$/i
     );
     if (legacyMatch?.[1]) return legacyMatch[1];
 
-    return "flow";
+    return "flow_icon.svg";
   }
 
   function getBlockMenu() {
@@ -207,13 +227,13 @@
     }
 
     if (part.type === "indicator") {
-      const indicatorCategory = resolveIndicatorCategory(part);
+      const indicatorFile = resolveIndicatorFile(part);
 
       return {
         template: `%${paramNumber}`,
         param: {
           type: "Indicator",
-          img: `block_icon/${indicatorCategory}_icon.svg`,
+          img: `block_icon/${indicatorFile}`,
           size: Math.max(8, Math.min(24, Number(part.size) || 11))
         },
         def: null
@@ -360,7 +380,8 @@ return {
   margin-bottom: 1px;
 }
 .entrySelectedCategory#entryCategory${info.id} {
-  background-image: url(/lib/entry-js/images/${info.icon}_on.svg);
+  background-image: url(/lib/entry-js/images/block_icon/${info.icon});
+  background-repeat: no-repeat;
   background-color: ${info.blockColor};
   border-color: ${info.borderColor};
   color: #fff;
@@ -513,7 +534,11 @@ if (oldStyle) {
       categoryInfos.push({ 
         id: categoryId,
         name: categoryName,
-        icon: category.icon || "flow_icon.svg",
+        icon: (() => {
+          const rawIcon = String(category.icon || "flow_icon.svg").trim();
+          if (/^[a-zA-Z0-9_.-]+\.svg$/i.test(rawIcon)) return rawIcon;
+          return LEGACY_INDICATOR_CODE_TO_FILE[rawIcon] || "flow_icon.svg";
+        })(),
         blockColor: rgbToHex(firstBlock.color || { r: 79, g: 99, b: 255 }),
         borderColor: rgbToHex(firstBlock.border || { r: 52, g: 70, b: 210 }),
         blockIds
