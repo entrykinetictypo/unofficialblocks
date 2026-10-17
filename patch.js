@@ -27,13 +27,65 @@
     looks: "looks_icon.svg",
     brush: "brush_icon.svg",
     sound: "sound_icon.svg",
+    judgement: "judgement_icon.svg",
     calc: "calc_icon.svg",
     variable: "variable_icon.svg",
     func: "func_icon.svg",
     analysis: "block_analysis.svg",
     ai_utilize: "ai_utilize_icon.svg",
+    expansion: "expansion_icon.svg",
     hardware: "hardware_icon.svg"
   };
+
+  const CATEGORY_ICON_CODES = new Set([
+    "start",
+    "flow",
+    "moving",
+    "looks",
+    "brush",
+    "sound",
+    "judgement",
+    "calc",
+    "variable",
+    "func",
+    "analysis",
+    "ai_utilize",
+    "expansion",
+    "hardware",
+    "sensor",
+    "speaker",
+    "motor",
+    "led"
+  ]);
+
+  function normalizeCategoryIcon(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "flow";
+
+    if (CATEGORY_ICON_CODES.has(raw)) {
+      return raw;
+    }
+
+    if (raw === "block_analysis.svg" || raw === "analysis_icon.svg") {
+      return "analysis";
+    }
+
+    if (raw.endsWith("_icon.svg")) {
+      const code = raw.slice(0, -"_icon.svg".length);
+      if (CATEGORY_ICON_CODES.has(code)) {
+        return code;
+      }
+    }
+
+    if (raw.endsWith(".svg")) {
+      const code = raw.slice(0, -4);
+      if (CATEGORY_ICON_CODES.has(code)) {
+        return code;
+      }
+    }
+
+    return "flow";
+  }
 
   let pendingConfig = null;
   let retryTimer = null;
@@ -75,7 +127,12 @@
 
   function resolveIndicatorFile(part) {
     const direct = String(part?.indicatorFile || "").trim();
-    if (/^[a-zA-Z0-9_.-]+\.svg$/i.test(direct)) {
+
+    if (
+      direct &&
+      !direct.includes("..") &&
+      /^[a-zA-Z0-9_./-]+\.(?:svg|png)$/i.test(direct)
+    ) {
       return direct;
     }
 
@@ -89,11 +146,13 @@
     const byCode = LEGACY_INDICATOR_CODE_TO_FILE[legacyCategory];
     if (byCode) return byCode;
 
-    // 예전 img에 block_icon/파일명.svg가 직접 저장돼 있던 경우
+    // 예전 img에 block_icon/파일명이 직접 저장돼 있던 경우
     const legacyMatch = String(part?.img || "").match(
-      /block_icon\/([^/]+\.svg)$/i
+      /block_icon\/(.+\.(?:svg|png))$/i
     );
-    if (legacyMatch?.[1]) return legacyMatch[1];
+    if (legacyMatch?.[1] && !legacyMatch[1].includes("..")) {
+      return legacyMatch[1];
+    }
 
     return "flow_icon.svg";
   }
@@ -375,12 +434,12 @@ return {
 
       style.textContent = `
 #entryCategory${info.id} {
-  background-image: url(/lib/entry-js/images/block_icon/${info.icon});
+  background-image: url(/lib/entry-js/images/${info.icon}.svg);
   background-repeat: no-repeat;
   margin-bottom: 1px;
 }
 .entrySelectedCategory#entryCategory${info.id} {
-  background-image: url(/lib/entry-js/images/block_icon/${info.icon});
+  background-image: url(/lib/entry-js/images/${info.icon}_on.svg);
   background-repeat: no-repeat;
   background-color: ${info.blockColor};
   border-color: ${info.borderColor};
@@ -534,11 +593,7 @@ if (oldStyle) {
       categoryInfos.push({ 
         id: categoryId,
         name: categoryName,
-        icon: (() => {
-          const rawIcon = String(category.icon || "flow_icon.svg").trim();
-          if (/^[a-zA-Z0-9_.-]+\.svg$/i.test(rawIcon)) return rawIcon;
-          return LEGACY_INDICATOR_CODE_TO_FILE[rawIcon] || "flow_icon.svg";
-        })(),
+        icon: normalizeCategoryIcon(category.icon),
         blockColor: rgbToHex(firstBlock.color || { r: 79, g: 99, b: 255 }),
         borderColor: rgbToHex(firstBlock.border || { r: 52, g: 70, b: 210 }),
         blockIds
