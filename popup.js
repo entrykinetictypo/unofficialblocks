@@ -805,17 +805,36 @@ function makeDistributionJs() {
 
 
   function buildPart(
-    part,
-    paramNumber,
-    borderColor
-  ) {
+  part,
+  paramNumber,
+  borderColor
+) {
 
-    if (
-      !part ||
-      part.type === "label"
-    ) {
-      return null;
-    }
+  if (!part) {
+    return null;
+  }
+
+  if (part.type === "label") {
+    return {
+      template: "%" + paramNumber,
+
+      param: {
+        type: "Text",
+        text: String(part.text || ""),
+        color: rgbToHex(
+          part.color || {
+            r: 255,
+            g: 255,
+            b: 255,
+            a: 255
+          }
+        ),
+        align: "center"
+      },
+
+      def: undefined
+    };
+  }
 
 
     if (part.type === "value") {
@@ -861,7 +880,14 @@ function makeDistributionJs() {
           type: "TextInput",
           value: String(part.value ?? ""),
           clearBG: true,
-          color: "#ffffffff",
+          color: rgbToHex(
+  part.color || {
+    r: 255,
+    g: 255,
+    b: 255,
+    a: 255
+  }
+),
           size: Math.max(
             8,
             Math.min(
@@ -1029,16 +1055,7 @@ function makeDistributionJs() {
       }
 
 
-      if (part?.type === "label") {
-        const text =
-          String(part.text || "").trim();
-
-        if (text) {
-          templatePieces.push(text);
-        }
-
-        continue;
-      }
+      
 
 
       const compiled =
