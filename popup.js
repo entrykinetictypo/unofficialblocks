@@ -23,6 +23,50 @@
   const INDICATOR_CODE_TO_NAME = Object.fromEntries(
     INDICATOR_CATEGORIES.map(([name, code]) => [code, name])
   );
+  const INDICATOR_OPTIONS = [
+  // 기존
+  ["시작", "start_icon.svg"],
+  ["흐름", "flow_icon.svg"],
+  ["움직임", "moving_icon.svg"],
+  ["생김새", "looks_icon.svg"],
+  ["붓", "brush_icon.svg"],
+  ["소리", "sound_icon.svg"],
+  ["판단", "judgement_icon.svg"],
+  ["계산", "calc_icon.svg"],
+  ["자료", "variable_icon.svg"],
+  ["함수", "func_icon.svg"],
+  ["데이터분석", "analysis_icon.svg"],
+  ["인공지능", "ai_utilize_icon.svg"],
+  ["확장", "expansion_icon.svg"],
+  ["하드웨어", "hardware_icon.svg"],
+
+  // 추가 발견
+  ["시작 - 재생", "start_icon_play.svg"],
+  ["시작 - 복제", "start_icon_clone.svg"],
+  ["시작 - 키보드", "start_icon_keyboard.svg"],
+  ["시작 - 마우스", "start_icon_mouse.svg"],
+  ["시작 - 신호", "start_icon_signal.svg"],
+  ["시작 - 장면", "start_icon_scene.svg"],
+  ["시작 - 얼굴", "start_icon_face.svg"],
+  ["시작 - 손", "start_icon_hand.svg"],
+  ["시작 - 포즈", "start_icon_pose.svg"],
+  ["시작 - 사물", "start_icon_object.svg"],
+
+  ["AI - 얼굴", "ai_face_icon.svg"],
+  ["AI - 손", "ai_hand_icon.svg"],
+  ["AI - 사물", "ai_object_icon.svg"],
+  ["AI - 포즈", "ai_pose_icon.svg"],
+  ["AI - 영상", "ai_video_icon.svg"],
+
+  ["데이터분석 - 특수", "block_analysis.svg"],
+
+  ["하드웨어 Lite", "hardwarelite_icon.svg"],
+  ["하드웨어 - LED", "hardware_led.svg"],
+  ["하드웨어 - DC", "hardware_dc.svg"],
+  ["하드웨어 - 부저", "hardware_bzr2.svg"],
+  ["시작 - 하드웨어", "start_icon_hardware.svg"],
+  ["시작 - 하드웨어 Lite", "start_icon_hardwarelite.svg"]
+];
 
   const categoriesList = document.getElementById("categoriesList");
   const addCategoryBtn = document.getElementById("addCategoryBtn");
@@ -83,8 +127,12 @@
   };
 }
     if (type === "indicator") {
-      return { type, size: 11, categoryName: "흐름" };
-    }
+  return {
+    type,
+    size: 11,
+    indicatorFile: "flow_icon.svg"
+  };
+}
     if (type === "linebreak") return { type };
     if (type === "dropdown") {
       return {
@@ -107,7 +155,7 @@ function createDefaultBlock(index) {
     border: { r: 52, g: 70, b: 210, a: 255 },
     parts: [
         { type: "label", text: `블록 ${index + 1}` },
-        { type: "indicator", size: 11, categoryName: "흐름" }
+        { type: "indicator", size: 11, indicatorFile: "flow_icon.svg" }
       ]
     };
   }
@@ -133,21 +181,54 @@ function createDefaultBlock(index) {
   }
 
   function normalizeIndicatorPart(part) {
-    if (!part || part.type !== "indicator") return part;
-
-    if (!part.categoryName) {
-      let code = String(part.category || "").trim();
-      if (!code && part.img) {
-        const match = String(part.img).match(/block_icon\/([^/]+?)_icon\.svg$/i);
-        code = match?.[1] || "flow";
-      }
-      part.categoryName = INDICATOR_CODE_TO_NAME[code] || "흐름";
-    }
-
-    delete part.category;
-    delete part.img;
+  if (!part || part.type !== "indicator") {
     return part;
   }
+
+  // 새 방식
+  if (part.indicatorFile) {
+    return part;
+  }
+
+  // 예전 img 저장 방식
+  if (part.img) {
+    const match = String(part.img).match(
+      /block_icon\/([^/]+\.svg)$/i
+    );
+
+    if (match?.[1]) {
+      part.indicatorFile = match[1];
+      delete part.img;
+      delete part.category;
+      delete part.categoryName;
+      return part;
+    }
+  }
+
+  // 예전 categoryName 방식
+  const nameToFile = Object.fromEntries(
+    INDICATOR_CATEGORIES.map(
+      ([name, code]) => [name, `${code}_icon.svg`]
+    )
+  );
+
+  if (part.categoryName && nameToFile[part.categoryName]) {
+    part.indicatorFile =
+      nameToFile[part.categoryName];
+  } else if (part.category) {
+    part.indicatorFile =
+      `${part.category}_icon.svg`;
+  } else {
+    part.indicatorFile =
+      "flow_icon.svg";
+  }
+
+  delete part.category;
+  delete part.categoryName;
+  delete part.img;
+
+  return part;
+}
 
   function normalizeBlock(block, index) {
     if (!block || typeof block !== "object") block = createDefaultBlock(index);
@@ -604,13 +685,44 @@ return;
       size.max = "24";
       container.appendChild(makeField("크기", size));
 
-      const categorySelect = document.createElement("select");
-      for (const [name] of INDICATOR_CATEGORIES) {
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        categorySelect.appendChild(option);
-      }
+      const indicatorSelect =
+  document.createElement("select");
+
+for (const [name, file] of INDICATOR_OPTIONS) {
+  const option =
+    document.createElement("option");
+
+  option.value = file;
+  option.textContent = name;
+
+  indicatorSelect.appendChild(option);
+}
+
+indicatorSelect.value =
+  part.indicatorFile || "flow_icon.svg";
+
+if (
+  ![...indicatorSelect.options].some(
+    (option) =>
+      option.value === indicatorSelect.value
+  )
+) {
+  indicatorSelect.value = "flow_icon.svg";
+}
+
+indicatorSelect.addEventListener(
+  "change",
+  () => {
+    editingBlock.parts[index].indicatorFile =
+      indicatorSelect.value;
+  }
+);
+
+container.appendChild(
+  makeField("인디케이터 종류", indicatorSelect)
+);
+
+return;
 
       categorySelect.value = part.categoryName || "흐름";
       if (![...categorySelect.options].some((option) => option.value === categorySelect.value)) {
@@ -623,12 +735,7 @@ return;
 
       container.appendChild(makeField("카테고리 이름", categorySelect));
 
-      const hint = document.createElement("div");
-      hint.className = "hint";
-      hint.textContent = "시작, 흐름, 움직임, 생김새, 붓, 소리, 판단, 계산, 자료, 함수, 데이터분석, 인공지능, 확장, 하드웨어 중에서 선택합니다.";
-      container.appendChild(hint);
-      return;
-    }
+      
 
     if (part.type === "dropdown") {
       const optionList = document.createElement("div");
@@ -794,14 +901,51 @@ function makeDistributionJs() {
   }
 
 
-  function resolveIndicatorCategory(part) {
-    return (
-      INDICATOR_NAME_TO_CODE[
-        String(part?.categoryName || "").trim()
-      ] ||
-      "flow"
-    );
+  function resolveIndicatorFile(part) {
+  // 새 방식
+  const direct =
+    String(part?.indicatorFile || "").trim();
+
+  if (
+    direct &&
+    /^[a-zA-Z0-9_.-]+\.svg$/.test(direct)
+  ) {
+    return direct;
   }
+
+  // 기존 categoryName 방식 호환
+  const byName =
+    INDICATOR_NAME_TO_CODE[
+      String(part?.categoryName || "").trim()
+    ];
+
+  if (byName) {
+    return `${byName}_icon.svg`;
+  }
+
+  // 기존 category 코드 호환
+  const legacyCategory =
+    String(part?.category || "").trim();
+
+  if (
+    legacyCategory &&
+    /^[a-zA-Z0-9_-]+$/.test(legacyCategory)
+  ) {
+    return `${legacyCategory}_icon.svg`;
+  }
+
+  // 기존 img 직접 저장 방식 호환
+  const legacyMatch =
+    String(part?.img || "").match(
+      /block_icon\/([^/]+\.svg)$/i
+    );
+
+  if (legacyMatch?.[1]) {
+    return legacyMatch[1];
+  }
+
+  return "flow_icon.svg";
+}
 
 
   function buildPart(
@@ -903,31 +1047,22 @@ function makeDistributionJs() {
 
 
     if (part.type === "indicator") {
-      const category =
-        resolveIndicatorCategory(part);
+  const indicatorFile =
+    resolveIndicatorFile(part);
 
-      return {
-        template: "%" + paramNumber,
-
-        param: {
-          type: "Indicator",
-          img:
-            "block_icon/" +
-            category +
-            "_icon.svg",
-
-          size: Math.max(
-            8,
-            Math.min(
-              24,
-              Number(part.size) || 11
-            )
-          )
-        },
-
-        def: null
-      };
-    }
+  return {
+    template: `%${paramNumber}`,
+    param: {
+      type: "Indicator",
+      img: `block_icon/${indicatorFile}`,
+      size: Math.max(
+        8,
+        Math.min(24, Number(part.size) || 11)
+      )
+    },
+    def: null
+  };
+}
 
 
     if (part.type === "linebreak") {
