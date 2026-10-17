@@ -136,7 +136,28 @@
   }
 
   function buildPart(part, paramNumber, borderColor) {
-    if (!part || part.type === "label") return null;
+    if (!part) return null;
+    if (part.type === "label") {
+  return {
+    template: `%${paramNumber}`,
+
+    param: {
+      type: "Text",
+      text: String(part.text || ""),
+      color: rgbToHex(
+        part.color || {
+          r: 255,
+          g: 255,
+          b: 255,
+          a: 255
+        }
+      ),
+      align: "center"
+    },
+
+    def: undefined
+  };
+}
 
     if (part.type === "value") {
       return {
@@ -171,7 +192,14 @@
           type: "TextInput",
           value: String(part.value ?? ""),
           clearBG: true,
-          color: "#ffffffff",
+          color: rgbToHex(
+  part.color || {
+    r: 255,
+    g: 255,
+    b: 255,
+    a: 255
+  }
+),
           size: Math.max(8, Math.min(24, Number(part.size) || 12))
         },
         def: undefined
@@ -244,11 +272,7 @@ if (part.type === "linebreak") {
 ) {
   continue;
 }
-      if (part?.type === "label") {
-        const text = String(part.text || "").trim();
-        if (text) templatePieces.push(text);
-        continue;
-      }
+      
 
       const compiled = buildPart(part, paramNumber, borderColor);
       if (!compiled) continue;
