@@ -63,14 +63,25 @@
   }
 
   function createDefaultPart(type = "label") {
-    if (type === "label") return { type, text: "새 블록" };
+    if (type === "label") {
+  return {
+    type,
+    text: "새 블록",
+    color: { r: 255, g: 255, b: 255, a: 255 }
+  };
+}
     if (type === "value") return { type, defaultValue: "10" };
     if (type === "boolean") {
       return { type, trueText: "참", falseText: "거짓", defaultValue: "true" };
     }
     if (type === "textInput") {
-      return { type, value: "여기에 입력하세요", size: 12 };
-    }
+  return {
+    type,
+    value: "여기에 입력하세요",
+    size: 12,
+    color: { r: 255, g: 255, b: 255, a: 255 }
+  };
+}
     if (type === "indicator") {
       return { type, size: 11, categoryName: "흐름" };
     }
@@ -447,16 +458,73 @@ nameWrap.appendChild(iconLabel);
     input.addEventListener("input", () => onInput(input.value));
     return input;
   }
+  function makeRgbaEditor(color, onChange) {
+  const wrap = document.createElement("div");
+  wrap.className = "rgb-grid";
+
+  const current = color || {
+    r: 255,
+    g: 255,
+    b: 255,
+    a: 255
+  };
+
+  for (const key of ["r", "g", "b", "a"]) {
+    const input = document.createElement("input");
+
+    input.type = "number";
+    input.min = "0";
+    input.max = "255";
+    input.value = current[key] ?? 255;
+
+    input.addEventListener("input", () => {
+      current[key] = clampRgb(input.value);
+
+      onChange({
+        r: current.r,
+        g: current.g,
+        b: current.b,
+        a: current.a
+      });
+    });
+
+    const label = document.createElement("label");
+    label.textContent = key.toUpperCase();
+    label.appendChild(input);
+
+    wrap.appendChild(label);
+  }
+
+  return wrap;
+}
 
   function renderPartProperties(container, part, index) {
     if (part.type === "label") {
-      container.appendChild(
-        makeField("표시할 이름", makeInput(part.text, (value) => {
-          editingBlock.parts[index].text = value;
-        }))
-      );
-      return;
-    }
+  container.appendChild(
+    makeField(
+      "표시할 이름",
+      makeInput(part.text, (value) => {
+        editingBlock.parts[index].text = value;
+      })
+    )
+  );
+
+  const colorTitle = document.createElement("div");
+  colorTitle.className = "hint";
+  colorTitle.textContent = "글씨 색 (RGBA)";
+  container.appendChild(colorTitle);
+
+  container.appendChild(
+    makeRgbaEditor(
+      part.color,
+      (color) => {
+        editingBlock.parts[index].color = color;
+      }
+    )
+  );
+
+  return;
+}
 
     if (part.type === "value") {
       container.appendChild(
