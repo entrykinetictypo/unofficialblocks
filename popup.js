@@ -1551,8 +1551,10 @@ function makeDistributionJs() {
     if (element) {
   element.textContent = info.name;
 
-  element.style.backgroundImage =
-  "url(/lib/entry-js/images/" + info.icon + ".svg)";
+ element.style.backgroundImage =
+  "url(/lib/entry-js/images/block_icon/" +
+  info.icon +
+  ")";
 
   element.style.backgroundRepeat =
     "no-repeat";
