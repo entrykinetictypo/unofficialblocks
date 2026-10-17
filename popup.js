@@ -43,53 +43,22 @@
   ["시작 - 하드웨어 Lite", "start_icon_hardwarelite.svg"]
 ];
 
-  const INDICATOR_CODE_TO_NAME = Object.fromEntries(
-    INDICATOR_CATEGORIES.map(([name, code]) => [code, name])
-  );
-  const INDICATOR_OPTIONS = [
-  // 기존
-  ["시작", "start_icon.svg"],
-  ["흐름", "flow_icon.svg"],
-  ["움직임", "moving_icon.svg"],
-  ["생김새", "looks_icon.svg"],
-  ["붓", "brush_icon.svg"],
-  ["소리", "sound_icon.svg"],
-  ["판단", "judgement_icon.svg"],
-  ["계산", "calc_icon.svg"],
-  ["자료", "variable_icon.svg"],
-  ["함수", "func_icon.svg"],
-  ["데이터분석", "analysis_icon.svg"],
-  ["인공지능", "ai_utilize_icon.svg"],
-  ["확장", "expansion_icon.svg"],
-  ["하드웨어", "hardware_icon.svg"],
+  const ICON_NAME_TO_FILE = Object.fromEntries(ICON_OPTIONS);
 
-  // 추가 발견
-  ["시작 - 재생", "start_icon_play.svg"],
-  ["시작 - 복제", "start_icon_clone.svg"],
-  ["시작 - 키보드", "start_icon_keyboard.svg"],
-  ["시작 - 마우스", "start_icon_mouse.svg"],
-  ["시작 - 신호", "start_icon_signal.svg"],
-  ["시작 - 장면", "start_icon_scene.svg"],
-  ["시작 - 얼굴", "start_icon_face.svg"],
-  ["시작 - 손", "start_icon_hand.svg"],
-  ["시작 - 포즈", "start_icon_pose.svg"],
-  ["시작 - 사물", "start_icon_object.svg"],
-
-  ["AI - 얼굴", "ai_face_icon.svg"],
-  ["AI - 손", "ai_hand_icon.svg"],
-  ["AI - 사물", "ai_object_icon.svg"],
-  ["AI - 포즈", "ai_pose_icon.svg"],
-  ["AI - 영상", "ai_video_icon.svg"],
-
-  ["데이터분석 - 특수", "block_analysis.svg"],
-
-  ["하드웨어 Lite", "hardwarelite_icon.svg"],
-  ["하드웨어 - LED", "hardware_led.svg"],
-  ["하드웨어 - DC", "hardware_dc.svg"],
-  ["하드웨어 - 부저", "hardware_bzr2.svg"],
-  ["시작 - 하드웨어", "start_icon_hardware.svg"],
-  ["시작 - 하드웨어 Lite", "start_icon_hardwarelite.svg"]
-];
+  const LEGACY_ICON_CODE_TO_FILE = {
+    start: "start_icon.svg",
+    flow: "flow_icon.svg",
+    moving: "moving_icon.svg",
+    looks: "looks_icon.svg",
+    brush: "brush_icon.svg",
+    sound: "sound_icon.svg",
+    calc: "calc_icon.svg",
+    variable: "variable_icon.svg",
+    func: "func_icon.svg",
+    analysis: "block_analysis.svg",
+    ai_utilize: "ai_utilize_icon.svg",
+    hardware: "hardware_icon.svg"
+  };
 
   const categoriesList = document.getElementById("categoriesList");
   const addCategoryBtn = document.getElementById("addCategoryBtn");
@@ -177,7 +146,7 @@ function createDefaultBlock(index) {
     color: { r: 79, g: 99, b: 255, a: 255 },
     border: { r: 52, g: 70, b: 210, a: 255 },
     parts: [
-        { type: "label", text: `블록 ${index + 1}` },
+        { type: "label", text: `블록 ${index + 1}`, color: { r: 255, g: 255, b: 255, a: 255 } },
         { type: "indicator", size: 11, indicatorFile: "flow_icon.svg" }
       ]
     };
@@ -204,54 +173,35 @@ function createDefaultBlock(index) {
   }
 
   function normalizeIndicatorPart(part) {
-  if (!part || part.type !== "indicator") {
-    return part;
-  }
+    if (!part || part.type !== "indicator") return part;
 
-  // 새 방식
-  if (part.indicatorFile) {
-    return part;
-  }
+    if (part.indicatorFile) return part;
 
-  // 예전 img 저장 방식
-  if (part.img) {
-    const match = String(part.img).match(
-      /block_icon\/([^/]+\.svg)$/i
-    );
-
-    if (match?.[1]) {
-      part.indicatorFile = match[1];
-      delete part.img;
-      delete part.category;
-      delete part.categoryName;
-      return part;
+    if (part.img) {
+      const match = String(part.img).match(/block_icon\/([^/]+\.svg)$/i);
+      if (match?.[1]) {
+        part.indicatorFile = match[1];
+      }
     }
+
+    if (!part.indicatorFile && part.categoryName) {
+      part.indicatorFile = ICON_NAME_TO_FILE[String(part.categoryName).trim()] || "";
+    }
+
+    if (!part.indicatorFile && part.category) {
+      part.indicatorFile =
+        LEGACY_ICON_CODE_TO_FILE[String(part.category).trim()] || "";
+    }
+
+    if (!part.indicatorFile) {
+      part.indicatorFile = "flow_icon.svg";
+    }
+
+    delete part.category;
+    delete part.categoryName;
+    delete part.img;
+    return part;
   }
-
-  // 예전 categoryName 방식
-  const nameToFile = Object.fromEntries(
-    INDICATOR_CATEGORIES.map(
-      ([name, code]) => [name, `${code}_icon.svg`]
-    )
-  );
-
-  if (part.categoryName && nameToFile[part.categoryName]) {
-    part.indicatorFile =
-      nameToFile[part.categoryName];
-  } else if (part.category) {
-    part.indicatorFile =
-      `${part.category}_icon.svg`;
-  } else {
-    part.indicatorFile =
-      "flow_icon.svg";
-  }
-
-  delete part.category;
-  delete part.categoryName;
-  delete part.img;
-
-  return part;
-}
 
   function normalizeBlock(block, index) {
     if (!block || typeof block !== "object") block = createDefaultBlock(index);
@@ -295,17 +245,12 @@ function createDefaultBlock(index) {
       if (!normalized.id) normalized.id = uid("ubg_category");
       normalized.name = String(normalized.name ?? normalized.categoryName ?? "");
       if (!normalized.icon) {
-  normalized.icon = "flow_icon.svg";
-}
-
-// 예전 저장값 호환
-if (
-  normalized.icon &&
-  !normalized.icon.endsWith(".svg")
-) {
-  normalized.icon =
-    normalized.icon + "_icon.svg";
-}
+        normalized.icon = "flow_icon.svg";
+      } else if (!String(normalized.icon).endsWith(".svg")) {
+        normalized.icon =
+          LEGACY_ICON_CODE_TO_FILE[String(normalized.icon).trim()] ||
+          "flow_icon.svg";
+      }
       if (!Array.isArray(normalized.blocks) || !normalized.blocks.length) {
         normalized.blocks = [createDefaultBlock(0)];
       }
@@ -430,12 +375,13 @@ for (const [name, file] of ICON_OPTIONS) {
   option.value = file;
   option.textContent = name;
 
-  indicatorSelect.appendChild(option);
+  iconSelect.appendChild(option);
 }
 
-iconSelect.value =
-  category.icon || "flow_icon.svg";
-iconSelect.value = category.icon || "flow";
+iconSelect.value = category.icon || "flow_icon.svg";
+if (![...iconSelect.options].some((option) => option.value === iconSelect.value)) {
+  iconSelect.value = "flow_icon.svg";
+}
 
 iconSelect.addEventListener("change", () => {
   design.categories[categoryIndex].icon = iconSelect.value;
@@ -727,7 +673,7 @@ return;
       const indicatorSelect =
   document.createElement("select");
 
-for (const [name, file] of INDICATOR_OPTIONS) {
+for (const [name, file] of ICON_OPTIONS) {
   const option =
     document.createElement("option");
 
@@ -761,20 +707,8 @@ container.appendChild(
   makeField("인디케이터 종류", indicatorSelect)
 );
 
-return;
-
-      categorySelect.value = part.categoryName || "흐름";
-      if (![...categorySelect.options].some((option) => option.value === categorySelect.value)) {
-        categorySelect.value = "흐름";
-      }
-
-      categorySelect.addEventListener("change", () => {
-        editingBlock.parts[index].categoryName = categorySelect.value;
-      });
-
-      container.appendChild(makeField("카테고리 이름", categorySelect));
-
-      
+      return;
+    }
 
     if (part.type === "dropdown") {
       const optionList = document.createElement("div");
@@ -882,24 +816,6 @@ function makeDistributionJs() {
 
   const design = ${configJson};
 
-  const INDICATOR_NAME_TO_CODE = {
-    "시작": "start",
-    "흐름": "flow",
-    "움직임": "moving",
-    "생김새": "looks",
-    "붓": "brush",
-    "소리": "sound",
-    "판단": "judgement",
-    "계산": "calc",
-    "자료": "variable",
-    "함수": "func",
-    "데이터분석": "analysis",
-    "인공지능": "ai_utilize",
-    "확장": "expansion",
-    "하드웨어": "hardware"
-  };
-
-
   function clampRgb(value) {
     const number = Number(value);
 
@@ -941,24 +857,9 @@ function makeDistributionJs() {
 
 
   function resolveIndicatorFile(part) {
-  const direct =
-    String(part?.indicatorFile || "").trim();
-
-  if (direct) {
-    return direct;
+    const direct = String(part?.indicatorFile || "").trim();
+    return direct || "flow_icon.svg";
   }
-
-  const code =
-    INDICATOR_NAME_TO_CODE[
-      String(part?.categoryName || "").trim()
-    ];
-
-  if (code) {
-    return code + "_icon.svg";
-  }
-
-  return "flow_icon.svg";
-}
 
 
   function buildPart(
@@ -1060,17 +961,29 @@ function makeDistributionJs() {
 
 
     if (part.type === "indicator") {
-  const indicatorFile =
-    resolveIndicatorFile(part);
+      const indicatorFile =
+        resolveIndicatorFile(part);
 
-  return {
-    template: "%" + paramNumber,
+      return {
+        template: "%" + paramNumber,
 
-    param: {
-      type: "Indicator",
-      img:
-        "block_icon/" +
-        indicatorFile,
+        param: {
+          type: "Indicator",
+          img:
+            "block_icon/" +
+            indicatorFile,
+          size: Math.max(
+            8,
+            Math.min(
+              24,
+              Number(part.size) || 11
+            )
+          )
+        },
+
+        def: null
+      };
+    }
 
 
     if (part.type === "linebreak") {
@@ -1492,7 +1405,7 @@ function makeDistributionJs() {
     categoryInfos.push({
       id: categoryId,
       name: categoryName,
-      icon: category.icon || "flow",
+      icon: category.icon || "flow_icon.svg",
 
       blockColor:
         rgbToHex(
