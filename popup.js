@@ -902,46 +902,20 @@ function makeDistributionJs() {
 
 
   function resolveIndicatorFile(part) {
-  // 새 방식
   const direct =
     String(part?.indicatorFile || "").trim();
 
-  if (
-    direct &&
-    /^[a-zA-Z0-9_.-]+\.svg$/.test(direct)
-  ) {
+  if (direct) {
     return direct;
   }
 
-  // 기존 categoryName 방식 호환
-  const byName =
+  const code =
     INDICATOR_NAME_TO_CODE[
       String(part?.categoryName || "").trim()
     ];
 
-  if (byName) {
-    return `${byName}_icon.svg`;
-  }
-
-  // 기존 category 코드 호환
-  const legacyCategory =
-    String(part?.category || "").trim();
-
-  if (
-    legacyCategory &&
-    /^[a-zA-Z0-9_-]+$/.test(legacyCategory)
-  ) {
-    return `${legacyCategory}_icon.svg`;
-  }
-
-  // 기존 img 직접 저장 방식 호환
-  const legacyMatch =
-    String(part?.img || "").match(
-      /block_icon\/([^/]+\.svg)$/i
-    );
-
-  if (legacyMatch?.[1]) {
-    return legacyMatch[1];
+  if (code) {
+    return code + "_icon.svg";
   }
 
   return "flow_icon.svg";
@@ -1051,18 +1025,13 @@ function makeDistributionJs() {
     resolveIndicatorFile(part);
 
   return {
-    template: `%${paramNumber}`,
+    template: "%" + paramNumber,
+
     param: {
       type: "Indicator",
-      img: `block_icon/${indicatorFile}`,
-      size: Math.max(
-        8,
-        Math.min(24, Number(part.size) || 11)
-      )
-    },
-    def: null
-  };
-}
+      img:
+        "block_icon/" +
+        indicatorFile,
 
 
     if (part.type === "linebreak") {
