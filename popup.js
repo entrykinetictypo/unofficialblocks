@@ -3,47 +3,81 @@
 
   const DESIGN_KEY = "ubg_design_v1";
 
- const ICON_OPTIONS = [
-  ["시작", "start_icon.svg"],
-  ["시작 - 재생", "start_icon_play.svg"],
-  ["시작 - 복제", "start_icon_clone.svg"],
-  ["시작 - 키보드", "start_icon_keyboard.svg"],
-  ["시작 - 마우스", "start_icon_mouse.svg"],
-  ["시작 - 신호", "start_icon_signal.svg"],
-  ["시작 - 장면", "start_icon_scene.svg"],
-  ["시작 - 얼굴", "start_icon_face.svg"],
-  ["시작 - 손", "start_icon_hand.svg"],
-  ["시작 - 포즈", "start_icon_pose.svg"],
-  ["시작 - 사물", "start_icon_object.svg"],
+ const CATEGORY_ICON_OPTIONS = [
+  ["시작", "start"],
+  ["흐름", "flow"],
+  ["움직임", "moving"],
+  ["생김새", "looks"],
+  ["붓", "brush"],
+  ["소리", "sound"],
+  ["판단", "judgement"],
+  ["계산", "calc"],
+  ["자료", "variable"],
+  ["함수", "func"],
+  ["데이터분석", "analysis"],
+  ["인공지능", "ai_utilize"],
+  ["확장", "expansion"],
+  ["하드웨어", "hardware"],
 
-  ["AI - 얼굴", "ai_face_icon.svg"],
-  ["AI - 손", "ai_hand_icon.svg"],
-  ["AI - 사물", "ai_object_icon.svg"],
-  ["AI - 포즈", "ai_pose_icon.svg"],
-  ["AI - 영상", "ai_video_icon.svg"],
-  ["AI", "ai_utilize_icon.svg"],
-
-  ["흐름", "flow_icon.svg"],
-  ["움직임", "moving_icon.svg"],
-  ["생김새", "looks_icon.svg"],
-  ["붓", "brush_icon.svg"],
-  ["소리", "sound_icon.svg"],
-  ["계산", "calc_icon.svg"],
-  ["자료", "variable_icon.svg"],
-  ["함수", "func_icon.svg"],
-
-  ["데이터분석", "block_analysis.svg"],
-
-  ["하드웨어", "hardware_icon.svg"],
-  ["하드웨어 Lite", "hardwarelite_icon.svg"],
-  ["하드웨어 - LED", "hardware_led.svg"],
-  ["하드웨어 - DC", "hardware_dc.svg"],
-  ["하드웨어 - 부저", "hardware_bzr2.svg"],
-  ["시작 - 하드웨어", "start_icon_hardware.svg"],
-  ["시작 - 하드웨어 Lite", "start_icon_hardwarelite.svg"]
+  // 교과형에서 사용하는 숨은 카테고리
+  ["센서", "sensor"],
+  ["스피커", "speaker"],
+  ["모터", "motor"],
+  ["LED", "led"]
 ];
 
-  const ICON_NAME_TO_FILE = Object.fromEntries(ICON_OPTIONS);
+  const CATEGORY_ICON_CODES = new Set(
+    CATEGORY_ICON_OPTIONS.map(([, code]) => code)
+  );
+
+  const INDICATOR_OPTIONS = [
+    ["시작", "start_icon.svg"],
+    ["시작 - 재생", "start_icon_play.svg"],
+    ["시작 - 복제", "start_icon_clone.svg"],
+    ["시작 - 키보드", "start_icon_keyboard.svg"],
+    ["시작 - 마우스", "start_icon_mouse.svg"],
+    ["시작 - 신호", "start_icon_signal.svg"],
+    ["시작 - 장면", "start_icon_scene.svg"],
+    ["시작 - 얼굴", "start_icon_face.svg"],
+    ["시작 - 손", "start_icon_hand.svg"],
+    ["시작 - 포즈", "start_icon_pose.svg"],
+    ["시작 - 사물", "start_icon_object.svg"],
+
+    ["AI - 얼굴", "ai_face_icon.svg"],
+    ["AI - 손", "ai_hand_icon.svg"],
+    ["AI - 사물", "ai_object_icon.svg"],
+    ["AI - 포즈", "ai_pose_icon.svg"],
+    ["AI - 영상", "ai_video_icon.svg"],
+    ["AI", "ai_utilize_icon.svg"],
+
+    ["흐름", "flow_icon.svg"],
+    ["움직임", "moving_icon.svg"],
+    ["생김새", "looks_icon.svg"],
+    ["붓", "brush_icon.svg"],
+    ["소리", "sound_icon.svg"],
+    ["계산", "calc_icon.svg"],
+    ["자료", "variable_icon.svg"],
+    ["함수", "func_icon.svg"],
+    ["데이터분석", "block_analysis.svg"],
+
+    ["하드웨어", "hardware_icon.svg"],
+    ["하드웨어 Lite", "hardwarelite_icon.svg"],
+    ["하드웨어 - LED", "hardware_led.svg"],
+    ["하드웨어 - DC", "hardware_dc.svg"],
+    ["하드웨어 - 부저", "hardware_bzr2.svg"],
+    ["시작 - 하드웨어", "start_icon_hardware.svg"],
+    ["시작 - 하드웨어 Lite", "start_icon_hardwarelite.svg"],
+
+    // 교과형 전용 인디케이터
+    ["교과형 - 서보", "practical_course/servo.png"],
+    ["교과형 - DC 모터", "practical_course/dcmotor.png"],
+    ["교과형 - LED", "practical_course/diode.png"],
+    ["교과형 - 멜로디", "practical_course/melody.png"],
+    ["교과형 - 소리", "practical_course/sound.png"],
+    ["교과형 - 빛", "practical_course/light.png"]
+  ];
+
+  const INDICATOR_NAME_TO_FILE = Object.fromEntries(INDICATOR_OPTIONS);
 
   const LEGACY_ICON_CODE_TO_FILE = {
     start: "start_icon.svg",
@@ -52,13 +86,44 @@
     looks: "looks_icon.svg",
     brush: "brush_icon.svg",
     sound: "sound_icon.svg",
+    judgement: "judgement_icon.svg",
     calc: "calc_icon.svg",
     variable: "variable_icon.svg",
     func: "func_icon.svg",
     analysis: "block_analysis.svg",
     ai_utilize: "ai_utilize_icon.svg",
+    expansion: "expansion_icon.svg",
     hardware: "hardware_icon.svg"
   };
+
+  function normalizeCategoryIcon(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "flow";
+
+    if (CATEGORY_ICON_CODES.has(raw)) {
+      return raw;
+    }
+
+    if (raw === "block_analysis.svg" || raw === "analysis_icon.svg") {
+      return "analysis";
+    }
+
+    if (raw.endsWith("_icon.svg")) {
+      const code = raw.slice(0, -"_icon.svg".length);
+      if (CATEGORY_ICON_CODES.has(code)) {
+        return code;
+      }
+    }
+
+    if (raw.endsWith(".svg")) {
+      const code = raw.slice(0, -4);
+      if (CATEGORY_ICON_CODES.has(code)) {
+        return code;
+      }
+    }
+
+    return "flow";
+  }
 
   const categoriesList = document.getElementById("categoriesList");
   const addCategoryBtn = document.getElementById("addCategoryBtn");
@@ -156,7 +221,7 @@ function createDefaultBlock(index) {
   return {
     id: uid("ubg_category"),
     name: index === 0 ? "" : `카테고리 ${index + 1}`,
-    icon: "flow_icon.svg",
+    icon: "flow",
     blocks: [createDefaultBlock(0)]
   };
 }
@@ -178,14 +243,14 @@ function createDefaultBlock(index) {
     if (part.indicatorFile) return part;
 
     if (part.img) {
-      const match = String(part.img).match(/block_icon\/([^/]+\.svg)$/i);
+      const match = String(part.img).match(/block_icon\/(.+\.(?:svg|png))$/i);
       if (match?.[1]) {
         part.indicatorFile = match[1];
       }
     }
 
     if (!part.indicatorFile && part.categoryName) {
-      part.indicatorFile = ICON_NAME_TO_FILE[String(part.categoryName).trim()] || "";
+      part.indicatorFile = INDICATOR_NAME_TO_FILE[String(part.categoryName).trim()] || "";
     }
 
     if (!part.indicatorFile && part.category) {
@@ -244,13 +309,7 @@ function createDefaultBlock(index) {
 
       if (!normalized.id) normalized.id = uid("ubg_category");
       normalized.name = String(normalized.name ?? normalized.categoryName ?? "");
-      if (!normalized.icon) {
-        normalized.icon = "flow_icon.svg";
-      } else if (!String(normalized.icon).endsWith(".svg")) {
-        normalized.icon =
-          LEGACY_ICON_CODE_TO_FILE[String(normalized.icon).trim()] ||
-          "flow_icon.svg";
-      }
+      normalized.icon = normalizeCategoryIcon(normalized.icon);
       if (!Array.isArray(normalized.blocks) || !normalized.blocks.length) {
         normalized.blocks = [createDefaultBlock(0)];
       }
@@ -368,19 +427,16 @@ iconLabel.textContent = "카테고리 아이콘";
 
 const iconSelect = document.createElement("select");
 
-for (const [name, file] of ICON_OPTIONS) {
-  const option =
-    document.createElement("option");
-
-  option.value = file;
+for (const [name, code] of CATEGORY_ICON_OPTIONS) {
+  const option = document.createElement("option");
+  option.value = code;
   option.textContent = name;
-
   iconSelect.appendChild(option);
 }
 
-iconSelect.value = category.icon || "flow_icon.svg";
+iconSelect.value = normalizeCategoryIcon(category.icon);
 if (![...iconSelect.options].some((option) => option.value === iconSelect.value)) {
-  iconSelect.value = "flow_icon.svg";
+  iconSelect.value = "flow";
 }
 
 iconSelect.addEventListener("change", () => {
@@ -673,7 +729,7 @@ return;
       const indicatorSelect =
   document.createElement("select");
 
-for (const [name, file] of ICON_OPTIONS) {
+for (const [name, file] of INDICATOR_OPTIONS) {
   const option =
     document.createElement("option");
 
@@ -1405,7 +1461,7 @@ function makeDistributionJs() {
     categoryInfos.push({
       id: categoryId,
       name: categoryName,
-      icon: category.icon || "flow_icon.svg",
+      icon: category.icon || "flow",
 
       blockColor:
         rgbToHex(
@@ -1465,9 +1521,9 @@ function makeDistributionJs() {
   element.textContent = info.name;
 
  element.style.backgroundImage =
-  "url(/lib/entry-js/images/block_icon/" +
+  "url(/lib/entry-js/images/" +
   info.icon +
-  ")";
+  ".svg)";
 
   element.style.backgroundRepeat =
     "no-repeat";
