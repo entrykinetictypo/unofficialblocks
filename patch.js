@@ -355,7 +355,7 @@ return {
 
       style.textContent = `
 #entryCategory${info.id} {
-  background-image: url(/lib/entry-js/images/${info.icon}.svg);
+  background-image: url(/lib/entry-js/images/block_icon/${info.icon});
   background-repeat: no-repeat;
   margin-bottom: 1px;
 }
@@ -513,7 +513,7 @@ if (oldStyle) {
       categoryInfos.push({ 
         id: categoryId,
         name: categoryName,
-        icon: category.icon || "flow",
+        icon: category.icon || "flow_icon.svg",
         blockColor: rgbToHex(firstBlock.color || { r: 79, g: 99, b: 255 }),
         borderColor: rgbToHex(firstBlock.border || { r: 52, g: 70, b: 210 }),
         blockIds
