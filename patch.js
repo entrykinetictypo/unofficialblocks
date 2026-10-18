@@ -231,7 +231,7 @@
           a: 255
         }
       ),
-      align: "center"
+      align: "left"
     },
 
     def: undefined
