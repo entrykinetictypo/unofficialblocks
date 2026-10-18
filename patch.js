@@ -52,10 +52,7 @@
     "ai_utilize",
     "expansion",
     "hardware",
-    "sensor",
-    "speaker",
-    "motor",
-    "led"
+    "sensor"
   ]);
 
   function normalizeCategoryIcon(value) {
