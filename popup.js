@@ -921,8 +921,11 @@ function makeDistributionJs() {
   }
 
 
-  function createBlockFunction(code, blockId) {
+  function createBlockFunction(code, blockId, paramNames) {
     const source = String(code || "").trim();
+    const names = Array.isArray(paramNames)
+      ? paramNames.filter((name) => /^P\\d+$/.test(String(name)))
+      : [];
 
     if (!source) {
       return async () => {};
@@ -937,6 +940,7 @@ function makeDistributionJs() {
         "script",
         "Entry",
         "get",
+        ...names,
         source
       );
 
@@ -944,11 +948,14 @@ function makeDistributionJs() {
         const get = (name) =>
           script.getValue(String(name), script);
 
+        const values = names.map((name) => get(name));
+
         return runner(
           sprite,
           script,
           Entry,
-          get
+          get,
+          ...values
         );
       };
     } catch (error) {
@@ -1298,7 +1305,8 @@ function makeDistributionJs() {
 
       func: createBlockFunction(
         block.jsCode,
-        blockId
+        blockId,
+        Object.keys(paramsKeyMap)
       ),
 
       template
