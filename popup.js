@@ -21,9 +21,6 @@
 
   // 교과형에서 사용하는 숨은 카테고리
   ["센서", "sensor"],
-  ["스피커", "speaker"],
-  ["모터", "motor"],
-  ["LED", "led"]
 ];
 
   const CATEGORY_ICON_CODES = new Set(
