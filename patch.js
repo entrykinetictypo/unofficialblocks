@@ -157,6 +157,47 @@
     return "flow_icon.svg";
   }
 
+  function createBlockFunction(code, blockId) {
+    const source = String(code || "").trim();
+
+    if (!source) {
+      return async () => {};
+    }
+
+    try {
+      const AsyncFunction =
+        Object.getPrototypeOf(async function() {}).constructor;
+
+      const runner = new AsyncFunction(
+        "sprite",
+        "script",
+        "Entry",
+        "get",
+        source
+      );
+
+      return async (sprite, script) => {
+        const get = (name) =>
+          script.getValue(String(name), script);
+
+        return runner(
+          sprite,
+          script,
+          Entry,
+          get
+        );
+      };
+    } catch (error) {
+      console.error(
+        "[비공식 블록 생성기] JS 컴파일 실패:",
+        blockId,
+        error
+      );
+
+      return async () => {};
+    }
+  }
+
   function getBlockMenu() {
     return (
       Entry.playground?.mainWorkspace?.blockMenu ||
@@ -383,7 +424,10 @@ const definition = {
   },
   paramsKeyMap: map,
   class: "ubg_generated",
-  func: async () => {},
+  func: createBlockFunction(
+    block.jsCode,
+    blockId
+  ),
   template
 };
 
