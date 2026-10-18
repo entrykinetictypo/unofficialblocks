@@ -157,11 +157,19 @@
     return "flow_icon.svg";
   }
 
-  function createBlockFunction(code, blockId, paramNames) {
+  function createBlockFunction(code, blockId, paramNames, aliasMap) {
     const source = String(code || "").trim();
     const names = Array.isArray(paramNames)
       ? paramNames.filter((name) => /^P\\d+$/.test(String(name)))
       : [];
+    const aliases =
+      aliasMap && typeof aliasMap === "object"
+        ? Object.entries(aliasMap).filter(
+            ([alias, key]) =>
+              /^(?:VALUE|BOOL|TEXT|DROPDOWN)\\d+$/.test(alias) &&
+              /^P\\d+$/.test(String(key))
+          )
+        : [];
 
     if (!source) {
       return async () => {};
@@ -171,12 +179,15 @@
       const AsyncFunction =
         Object.getPrototypeOf(async function() {}).constructor;
 
+      const aliasNames = aliases.map(([alias]) => alias);
+
       const runner = new AsyncFunction(
         "sprite",
         "script",
         "Entry",
         "get",
         ...names,
+        ...aliasNames,
         source
       );
 
@@ -185,13 +196,15 @@
           script.getValue(String(name), script);
 
         const values = names.map((name) => get(name));
+        const aliasValues = aliases.map(([, key]) => get(key));
 
         return runner(
           sprite,
           script,
           Entry,
           get,
-          ...values
+          ...values,
+          ...aliasValues
         );
       };
     } catch (error) {
@@ -388,6 +401,13 @@ if (part.type === "linebreak") {
     const params = [];
     const defs = [];
     const map = {};
+    const aliasMap = {};
+    const aliasCounts = {
+      value: 0,
+      boolean: 0,
+      textInput: 0,
+      dropdown: 0
+    };
     const templatePieces = [];
     let paramNumber = 1;
     let mapIndex = 0;
@@ -406,8 +426,27 @@ if (part.type === "linebreak") {
 
       templatePieces.push(compiled.template);
       params.push(compiled.param);
-      if (compiled.def !== undefined) defs.push(compiled.def);
-      map[`P${mapIndex + 1}`] = mapIndex;
+
+      // def 배열은 params와 같은 인덱스를 유지해야 한다.
+      defs.push(compiled.def);
+
+      const paramKey = `P${mapIndex + 1}`;
+      map[paramKey] = mapIndex;
+
+      if (part.type === "value") {
+        aliasCounts.value++;
+        aliasMap[`VALUE${aliasCounts.value}`] = paramKey;
+      } else if (part.type === "boolean") {
+        aliasCounts.boolean++;
+        aliasMap[`BOOL${aliasCounts.boolean}`] = paramKey;
+      } else if (part.type === "textInput") {
+        aliasCounts.textInput++;
+        aliasMap[`TEXT${aliasCounts.textInput}`] = paramKey;
+      } else if (part.type === "dropdown") {
+        aliasCounts.dropdown++;
+        aliasMap[`DROPDOWN${aliasCounts.dropdown}`] = paramKey;
+      }
+
       mapIndex++;
       paramNumber++;
     }
@@ -434,7 +473,8 @@ const definition = {
   func: createBlockFunction(
     block.jsCode,
     blockId,
-    Object.keys(map)
+    Object.keys(map),
+    aliasMap
   ),
   template
 };
