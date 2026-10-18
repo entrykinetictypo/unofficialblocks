@@ -145,7 +145,8 @@
   const borderG = document.getElementById("borderG");
   const borderB = document.getElementById("borderB");
   const borderA = document.getElementById("borderA");
-  const blockShape = document.getElementById("blockShape");\n  const blockJsCode = document.getElementById("blockJsCode");
+  const blockShape = document.getElementById("blockShape");
+  const blockJsCode = document.getElementById("blockJsCode");
 
   let design = createDefaultDesign();
   let editingCategoryIndex = -1;
