@@ -10,9 +10,9 @@
     h1{font-size:18px;margin:0 0 12px}
     h2{font-size:14px;margin:0}
     label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
-    input,select,button{font:inherit}
-    input[type="text"],input[type="number"],select{width:100%;min-width:0;padding:8px 9px;border:1px solid #d4d8de;border-radius:8px;background:#fff;outline:none}
-    input:focus,select:focus{border-color:#7f8cff}
+    input,select,button,textarea{font:inherit}
+    input[type="text"],input[type="number"],select,textarea{width:100%;min-width:0;padding:8px 9px;border:1px solid #d4d8de;border-radius:8px;background:#fff;outline:none}
+    input:focus,select:focus,textarea:focus{border-color:#7f8cff}\n    .code-editor{min-height:150px;resize:vertical;font-family:Consolas,"Courier New",monospace;font-size:11px;line-height:1.45;white-space:pre;tab-size:2}
     button{border:0;border-radius:8px;padding:9px 11px;cursor:pointer;background:#eceff3}
     button:hover{filter:brightness(.97)}
     button:disabled{opacity:.55;cursor:default}
@@ -108,6 +108,20 @@
   <option value="basic_double_loop">if else 블록</option>
   <option value="basic_event">시작 블록</option>
 </select>
+
+      <div class="section-title">블록 기능 (JavaScript)</div>
+      <textarea
+        id="blockJsCode"
+        class="code-editor"
+        spellcheck="false"
+        placeholder='예: console.log("실행됨");&#10;return script.callReturn();'
+      ></textarea>
+      <div class="hint">
+        사용 가능: sprite, script, Entry, get(name). 입력값은 get("P1"), get("P2")처럼 읽습니다.
+        일반 블록은 실행 후 계속 진행하려면 return script.callReturn(); 을 사용하세요.
+        await도 사용할 수 있습니다.
+      </div>
+
       <div class="section-title">블록 구성</div>
       <div class="hint">드롭다운 하나가 블록 안의 요소 하나입니다. +를 누르면 요소가 추가됩니다.</div>
       <div id="partsEditor"></div>
