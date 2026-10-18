@@ -145,7 +145,7 @@
   const borderG = document.getElementById("borderG");
   const borderB = document.getElementById("borderB");
   const borderA = document.getElementById("borderA");
-  const blockShape = document.getElementById("blockShape");
+  const blockShape = document.getElementById("blockShape");\n  const blockJsCode = document.getElementById("blockJsCode");
 
   let design = createDefaultDesign();
   let editingCategoryIndex = -1;
@@ -210,6 +210,7 @@ function createDefaultBlock(index) {
     skeleton: "basic",
     color: { r: 79, g: 99, b: 255, a: 255 },
     border: { r: 52, g: 70, b: 210, a: 255 },
+    jsCode: "",
     parts: [
         { type: "label", text: `블록 ${index + 1}`, color: { r: 255, g: 255, b: 255, a: 255 } },
         { type: "indicator", size: 11, indicatorFile: "flow_icon.svg" }
@@ -272,6 +273,7 @@ function createDefaultBlock(index) {
     if (!block || typeof block !== "object") block = createDefaultBlock(index);
     if (!block.id) block.id = uid("block");
     if (!block.skeleton) block.skeleton = "basic";
+    if (typeof block.jsCode !== "string") block.jsCode = "";
     if (!Array.isArray(block.parts) || !block.parts.length) {
       block.parts = [createDefaultPart("label")];
     }
@@ -523,6 +525,7 @@ nameWrap.appendChild(iconLabel);
     borderB.value = editingBlock.border?.b ?? 210;
     borderA.value = editingBlock.border?.a ?? 255;
     blockShape.value = editingBlock.skeleton || "basic";
+    blockJsCode.value = editingBlock.jsCode || "";
 
     if (!Array.isArray(editingBlock.parts) || !editingBlock.parts.length) {
       editingBlock.parts = [createDefaultPart("label")];
@@ -918,6 +921,48 @@ function makeDistributionJs() {
   }
 
 
+  function createBlockFunction(code, blockId) {
+    const source = String(code || "").trim();
+
+    if (!source) {
+      return async () => {};
+    }
+
+    try {
+      const AsyncFunction =
+        Object.getPrototypeOf(async function() {}).constructor;
+
+      const runner = new AsyncFunction(
+        "sprite",
+        "script",
+        "Entry",
+        "get",
+        source
+      );
+
+      return async (sprite, script) => {
+        const get = (name) =>
+          script.getValue(String(name), script);
+
+        return runner(
+          sprite,
+          script,
+          Entry,
+          get
+        );
+      };
+    } catch (error) {
+      console.error(
+        "[비공식 블록] JS 컴파일 실패:",
+        blockId,
+        error
+      );
+
+      return async () => {};
+    }
+  }
+
+
   function buildPart(
   part,
   paramNumber,
@@ -1251,7 +1296,10 @@ function makeDistributionJs() {
 
       class: "ubg_generated",
 
-      func: async () => {},
+      func: createBlockFunction(
+        block.jsCode,
+        blockId
+      ),
 
       template
     };
@@ -1640,6 +1688,7 @@ function makeDistributionJs() {
       a: clampRgb(borderA.value)
     };
 editingBlock.skeleton = blockShape.value;
+    editingBlock.jsCode = blockJsCode.value;
     design.categories[editingCategoryIndex].blocks[editingBlockIndex] = editingBlock;
     saveDesign();
     renderCategories();
