@@ -922,8 +922,10 @@ function makeDistributionJs() {
   }
 
 
-  function createBlockFunction(code, blockId, paramNames, aliasMap) {
+  function createBlockFunction(code, blockId, paramNames, aliasMap, skeleton) {
     const source = String(code || "").trim();
+    const handlesCallReturn =
+      /\bscript\s*\.\s*callReturn\s*\(/.test(source);
     const names = Array.isArray(paramNames)
       ? paramNames.filter((name) => /^P\\d+$/.test(String(name)))
       : [];
@@ -963,7 +965,7 @@ function makeDistributionJs() {
         const values = names.map((name) => get(name));
         const aliasValues = aliases.map(([, key]) => get(key));
 
-        return runner(
+        const result = await runner(
           sprite,
           script,
           Entry,
@@ -971,6 +973,17 @@ function makeDistributionJs() {
           ...values,
           ...aliasValues
         );
+
+        // 일반 명령 블록은 사용자가 callReturn을 직접 쓰지 않아도
+        // 다음 블록으로 자동 진행한다.
+        if (
+          skeleton === "basic" &&
+          !handlesCallReturn
+        ) {
+          return script.callReturn();
+        }
+
+        return result;
       };
     } catch (error) {
       console.error(
@@ -1340,7 +1353,8 @@ function makeDistributionJs() {
         block.jsCode,
         blockId,
         Object.keys(paramsKeyMap),
-        aliasMap
+        aliasMap,
+        skeleton
       ),
 
       template
