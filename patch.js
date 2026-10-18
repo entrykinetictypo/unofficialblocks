@@ -157,8 +157,11 @@
     return "flow_icon.svg";
   }
 
-  function createBlockFunction(code, blockId) {
+  function createBlockFunction(code, blockId, paramNames) {
     const source = String(code || "").trim();
+    const names = Array.isArray(paramNames)
+      ? paramNames.filter((name) => /^P\\d+$/.test(String(name)))
+      : [];
 
     if (!source) {
       return async () => {};
@@ -173,6 +176,7 @@
         "script",
         "Entry",
         "get",
+        ...names,
         source
       );
 
@@ -180,11 +184,14 @@
         const get = (name) =>
           script.getValue(String(name), script);
 
+        const values = names.map((name) => get(name));
+
         return runner(
           sprite,
           script,
           Entry,
-          get
+          get,
+          ...values
         );
       };
     } catch (error) {
@@ -426,7 +433,8 @@ const definition = {
   class: "ubg_generated",
   func: createBlockFunction(
     block.jsCode,
-    blockId
+    blockId,
+    Object.keys(map)
   ),
   template
 };
