@@ -157,8 +157,10 @@
     return "flow_icon.svg";
   }
 
-  function createBlockFunction(code, blockId, paramNames, aliasMap) {
+  function createBlockFunction(code, blockId, paramNames, aliasMap, skeleton) {
     const source = String(code || "").trim();
+    const handlesCallReturn =
+      /\bscript\s*\.\s*callReturn\s*\(/.test(source);
     const names = Array.isArray(paramNames)
       ? paramNames.filter((name) => /^P\\d+$/.test(String(name)))
       : [];
@@ -198,7 +200,7 @@
         const values = names.map((name) => get(name));
         const aliasValues = aliases.map(([, key]) => get(key));
 
-        return runner(
+        const result = await runner(
           sprite,
           script,
           Entry,
@@ -206,6 +208,15 @@
           ...values,
           ...aliasValues
         );
+
+        if (
+          skeleton === "basic" &&
+          !handlesCallReturn
+        ) {
+          return script.callReturn();
+        }
+
+        return result;
       };
     } catch (error) {
       console.error(
@@ -474,7 +485,8 @@ const definition = {
     block.jsCode,
     blockId,
     Object.keys(map),
-    aliasMap
+    aliasMap,
+    skeleton
   ),
   template
 };
